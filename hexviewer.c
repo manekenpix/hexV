@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <gtk/gtk.h>
+#include <string.h>
 
 static int processFile(GtkWindow *widget, gpointer VB)
 {
@@ -7,7 +8,7 @@ static int processFile(GtkWindow *widget, gpointer VB)
     int buttonClicked;
     unsigned char *fileBuffer;
     unsigned int sizeOfFile;
-    GtkTextBuffer*viewerBuffer = VB;
+    GtkTextBuffer *viewerBuffer = VB;
     
     dialogue = gtk_file_chooser_dialog_new("Open File", NULL, GTK_FILE_CHOOSER_ACTION_OPEN, ("_Cancel"), GTK_RESPONSE_CANCEL, ("_Accept"),  GTK_RESPONSE_ACCEPT, NULL);
     
@@ -21,8 +22,8 @@ static int processFile(GtkWindow *widget, gpointer VB)
         gtk_widget_destroy(dialogue);
         binaryFile = fopen(fileName, "rb"); 
         if (binaryFile == NULL){
-            printf("There was an error opening the file\n");
-            return 0;
+            fprintf(stderr, "There was an error opening the file\n");
+            return 1;
         }
         
         fseek(binaryFile, 0L, SEEK_END);
@@ -32,12 +33,12 @@ static int processFile(GtkWindow *widget, gpointer VB)
         fread(fileBuffer, sizeof(char), sizeOfFile, binaryFile);
         fclose(binaryFile);
         
-        //gtk_text_buffer_set_text(viewerBuffer, fileName, -1);
         gtk_text_buffer_set_text(viewerBuffer, "Position   Value\n           00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF\n", -1);
         char text[20];
+        
         for (unsigned int i = 0; i < sizeOfFile; i++)
         {
-            if (((i + 1) != sizeOfFile) && (((i + 1) % 16) == 0))
+            if ((i + 1) != sizeOfFile && ((i + 1) % 16) == 0)
                 snprintf(text, sizeof(text), " %02X\n", fileBuffer[i]);
             else if ((i % 16) == 0)
                 snprintf(text, sizeof(text), "%010i %02X", i, fileBuffer[i]);
@@ -45,6 +46,8 @@ static int processFile(GtkWindow *widget, gpointer VB)
                 snprintf(text, sizeof(text), " %02X", fileBuffer[i]);
             gtk_text_buffer_insert_at_cursor(viewerBuffer, text, -1);
         }
+        //finalBuffer[finalBufferIndex] = 0;
+        gtk_text_buffer_insert_at_cursor(viewerBuffer, text, -1);
         free(fileBuffer);
         return 0;
     }
@@ -72,7 +75,7 @@ int main(int argc, char *argv[])
     
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
-    gtk_window_set_default_size(GTK_WINDOW(window), 400, 500); 
+    gtk_window_set_default_size(GTK_WINDOW(window), 450, 500); 
     gtk_window_set_title(GTK_WINDOW(window), "Hexadecimal Viewer");
     
     mainBox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 10);
