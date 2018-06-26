@@ -5,14 +5,17 @@
 // compile with this 
 // gcc -Wall -ggdb hexviewer.c -o hexviewer `pkg-config --libs --cflags gtk+-3.0`
 
+void copyCharIntoBuffer(char *tx, char* fb, int position)
+{
+  for (int i = 0; i < 3; i++)
+    fb[position + i] = tx[i];
+}
+
 long long int powForInts(int base, int exp)
 {
   long long int result = base;
   if (exp == 0)
-  {
     result = 1;
-  }
-  
   else
   {
     for (int i = 1; i < exp; i++)
@@ -21,15 +24,17 @@ long long int powForInts(int base, int exp)
   return result;
 }
 
-char* intToPosition(long long int number)
+void copyPositionIntoBuffer(char *fB, int position, int index)
 {
-  char *arrayForPosition = malloc(15);
+  char arrayForPosition[15];
   
   for (int i = 0; i < 15; i++)
   {
-    arrayForPosition[i] = ((number % powForInts(10, 15 - i)) / powForInts(10, 14 - i)) + 48;
+    arrayForPosition[i] = (((long long int)index % powForInts(10, 15 - i)) / powForInts(10, 14 - i)) + 48;
   }
-  return arrayForPosition;
+  
+  for (int j = 0; j < 15; j++)
+    fB[position + j] = arrayForPosition[j];
 }
 
 int processFile(GtkWindow *widget, gpointer VB)
@@ -37,7 +42,7 @@ int processFile(GtkWindow *widget, gpointer VB)
   //char bufferForPosition[15];
   GtkWidget *dialogue;
   int buttonClicked;
-  unsigned char *fileBuffer;
+  char *fileBuffer;
   unsigned int sizeOfFile;
   GtkTextBuffer *viewerBuffer = VB;
   char text[3];
@@ -61,43 +66,75 @@ int processFile(GtkWindow *widget, gpointer VB)
     fseek(binaryFile, 0L, SEEK_END);
     sizeOfFile = ftell(binaryFile);
     fseek(binaryFile, 0L, SEEK_SET);
-    fileBuffer = (unsigned char*)malloc(sizeOfFile);
+    fileBuffer = (char*)malloc(sizeOfFile);
     fread(fileBuffer, sizeof(char), sizeOfFile, binaryFile);
     fclose(binaryFile);
     
-    gtk_text_buffer_set_text(viewerBuffer, "Position         00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF\n\n", -1);
+    int numberOfLines = sizeOfFile / 10;
+    int finalSize = sizeOfFile + 50 + (numberOfLines * 45);
     
-    for (unsigned int i = 0; i < sizeOfFile; i++)
+    char *finalBuffer = (char*)malloc(finalSize);
+    
+    char *topText = "Position         00 01 02 03 04 05 06 07 08 09\n\n";
+    
+    int finalBufferIndex = 0;
+    printf("The size of the file is %d and the new buffer is %d\n", sizeOfFile, finalSize);
+    for (int i = 0; i < 48; i++)
     {
-      char lPart, hPart;
+      finalBuffer[i] = topText[i];
+      printf("%c", topText[i]);
+    }
+    
+    finalBufferIndex = 48;
+    
+    //gtk_text_buffer_set_text(viewerBuffer, "Position         00 01 02 03 04 05 06 07 08 09\n\n", -1);
+    int followTheCounter = 0;
+    for (int i = 0; i < sizeOfFile; i++)
+    {
+      //printf("Iteration number %d\n", i);
+      unsigned char lPart, hPart;
       
-      hPart = (fileBuffer[i] >> 4);
+      hPart = (fileBuffer[i] >> 4) & 0x0F;
       lPart = (fileBuffer[i] & 0x0F);
       
       text[0] = hPart < 10 ? (hPart += 48) : (hPart += 55);
       text[1] = lPart < 10 ? (lPart += 48) : (lPart += 55);
       
-      if ((i + 1) != sizeOfFile && ((i + 1) % 16) == 0)
+      if ((i + 1) != sizeOfFile && ((i + 1) % 10) == 0)
       {
         text[2] = '\n';
+        //printf("First if\n");
       }
       
-      else if ((i % 16) == 0)
+      else if ((i % 10) == 0)
       {
+        //printf("Second if\n");
         text[2] = ' ';
         //char *newLine = "15 spaces here ";
-        char *thePostion = intToPosition((long long int)(i + 1));
-        gtk_text_buffer_insert_at_cursor(viewerBuffer, thePostion, -1);
-        gtk_text_buffer_insert_at_cursor(viewerBuffer, "  ", -1);
-        free(thePostion);
+        /*copyPositionIntoBuffer(finalBuffer, finalBufferIndex, i);
+        finalBuffer += 15;
+        finalBuffer[finalBufferIndex] = 32;
+        finalBufferIndex++;*/
+        //printf("%c\n", thePostion[9]);
+        //gtk_text_buffer_insert_at_cursor(viewerBuffer, thePostion, -1);
+        //gtk_text_buffer_insert_at_cursor(viewerBuffer, "  ", -1);
       }
       else
       {
+        //printf("Third if\n");
         text[2] = ' ';
       }
-      gtk_text_buffer_insert_at_cursor(viewerBuffer, text, -1);
+      copyCharIntoBuffer(text, finalBuffer, finalBufferIndex);
+      finalBufferIndex += 3;
+      followTheCounter++;
+      //printf("%c%c%c\n", text[0], text[1], text[2]);
     }
-    free(fileBuffer);
+    printf("final Buffer Index %d, i is %d\n", finalBufferIndex, followTheCounter);
+    finalBuffer[finalBufferIndex] = '\0';
+    gtk_text_buffer_set_text(viewerBuffer, finalBuffer, finalBufferIndex);
+    //gtk_text_buffer_insert_at_cursor(viewerBuffer, finalBuffer, -1);
+    //free(fileBuffer);
+    //free(finalBuffer);
     return 0;
   }
   else
@@ -124,7 +161,7 @@ int main(int argc, char *argv[])
   
   window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
-  gtk_window_set_default_size(GTK_WINDOW(window), 550, 500); 
+  gtk_window_set_default_size(GTK_WINDOW(window), 400, 500); 
   gtk_window_set_title(GTK_WINDOW(window), "Hexadecimal Viewer");
   
   mainBox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 10);
@@ -146,7 +183,7 @@ int main(int argc, char *argv[])
   gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(textViewer), GTK_WRAP_WORD);
   
   gtk_container_set_border_width(GTK_CONTAINER (scrolledWindow), 5);
-  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW (scrolledWindow),GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
+  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW (scrolledWindow),GTK_POLICY_ALWAYS, GTK_POLICY_ALWAYS);
   gtk_container_add(GTK_CONTAINER(scrolledWindow), textViewer);
   gtk_box_pack_start(mainBox, menuBar, FALSE, FALSE, 0);
   gtk_box_pack_start(mainBox, scrolledWindow, TRUE, TRUE, 0);
