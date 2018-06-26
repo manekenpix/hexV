@@ -26,20 +26,14 @@ long long int powForInts(int base, int exp)
 
 void copyPositionIntoBuffer(char *fB, int position, int index)
 {
-  char arrayForPosition[15];
-  
   for (int i = 0; i < 15; i++)
   {
-    arrayForPosition[i] = (((long long int)index % powForInts(10, 15 - i)) / powForInts(10, 14 - i)) + 48;
+    fB[position + i] = (((long long int)index % powForInts(10, 15 - i)) / powForInts(10, 14 - i)) + 48;
   }
-  
-  for (int j = 0; j < 15; j++)
-    fB[position + j] = arrayForPosition[j];
 }
 
 int processFile(GtkWindow *widget, gpointer VB)
 {
-  //char bufferForPosition[15];
   GtkWidget *dialogue;
   int buttonClicked;
   char *fileBuffer;
@@ -75,23 +69,20 @@ int processFile(GtkWindow *widget, gpointer VB)
     
     char *finalBuffer = (char*)malloc(finalSize);
     
-    char *topText = "Position         00 01 02 03 04 05 06 07 08 09\n\n";
+    char *topText = "Position        00 01 02 03 04 05 06 07 08 09\n\n";
     
     int finalBufferIndex = 0;
     printf("The size of the file is %d and the new buffer is %d\n", sizeOfFile, finalSize);
-    for (int i = 0; i < 48; i++)
+    for (int i = 0; i < 47; i++)
     {
       finalBuffer[i] = topText[i];
-      printf("%c", topText[i]);
     }
     
-    finalBufferIndex = 48;
+    finalBufferIndex = 47;
     
-    //gtk_text_buffer_set_text(viewerBuffer, "Position         00 01 02 03 04 05 06 07 08 09\n\n", -1);
     int followTheCounter = 0;
     for (int i = 0; i < sizeOfFile; i++)
     {
-      //printf("Iteration number %d\n", i);
       unsigned char lPart, hPart;
       
       hPart = (fileBuffer[i] >> 4) & 0x0F;
@@ -103,38 +94,29 @@ int processFile(GtkWindow *widget, gpointer VB)
       if ((i + 1) != sizeOfFile && ((i + 1) % 10) == 0)
       {
         text[2] = '\n';
-        //printf("First if\n");
       }
       
       else if ((i % 10) == 0)
       {
-        //printf("Second if\n");
         text[2] = ' ';
-        //char *newLine = "15 spaces here ";
-        /*copyPositionIntoBuffer(finalBuffer, finalBufferIndex, i);
-        finalBuffer += 15;
+        copyPositionIntoBuffer(finalBuffer, finalBufferIndex, i);
+        finalBufferIndex += 15;
         finalBuffer[finalBufferIndex] = 32;
-        finalBufferIndex++;*/
-        //printf("%c\n", thePostion[9]);
-        //gtk_text_buffer_insert_at_cursor(viewerBuffer, thePostion, -1);
-        //gtk_text_buffer_insert_at_cursor(viewerBuffer, "  ", -1);
+        finalBufferIndex++;
       }
       else
       {
-        //printf("Third if\n");
         text[2] = ' ';
       }
       copyCharIntoBuffer(text, finalBuffer, finalBufferIndex);
       finalBufferIndex += 3;
       followTheCounter++;
-      //printf("%c%c%c\n", text[0], text[1], text[2]);
     }
     printf("final Buffer Index %d, i is %d\n", finalBufferIndex, followTheCounter);
     finalBuffer[finalBufferIndex] = '\0';
     gtk_text_buffer_set_text(viewerBuffer, finalBuffer, finalBufferIndex);
-    //gtk_text_buffer_insert_at_cursor(viewerBuffer, finalBuffer, -1);
-    //free(fileBuffer);
-    //free(finalBuffer);
+    free(fileBuffer);
+    free(finalBuffer);
     return 0;
   }
   else
