@@ -1,6 +1,4 @@
-#include <stdlib.h>
 #include <gtk/gtk.h>
-#include <string.h>
 
 // compile with this 
 // gcc -Wall -ggdb hexviewer.c -o hexviewer `pkg-config --libs --cflags gtk+-3.0`
@@ -72,7 +70,7 @@ int processFile(GtkWindow *widget, gpointer VB)
     char *topText = "Position        00 01 02 03 04 05 06 07 08 09\n\n";
     
     int finalBufferIndex = 0;
-    printf("The size of the file is %d and the new buffer is %d\n", sizeOfFile, finalSize);
+    //printf("The size of the file is %d and the new buffer is %d\n", sizeOfFile, finalSize);
     for (int i = 0; i < 47; i++)
     {
       finalBuffer[i] = topText[i];
@@ -112,7 +110,7 @@ int processFile(GtkWindow *widget, gpointer VB)
       finalBufferIndex += 3;
       followTheCounter++;
     }
-    printf("final Buffer Index %d, i is %d\n", finalBufferIndex, followTheCounter);
+    //printf("final Buffer Index %d, i is %d\n", finalBufferIndex, followTheCounter);
     finalBuffer[finalBufferIndex] = '\0';
     gtk_text_buffer_set_text(viewerBuffer, finalBuffer, finalBufferIndex);
     free(fileBuffer);
@@ -165,7 +163,7 @@ int main(int argc, char *argv[])
   gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(textViewer), GTK_WRAP_WORD);
   
   gtk_container_set_border_width(GTK_CONTAINER (scrolledWindow), 5);
-  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW (scrolledWindow),GTK_POLICY_ALWAYS, GTK_POLICY_ALWAYS);
+  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW (scrolledWindow),GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
   gtk_container_add(GTK_CONTAINER(scrolledWindow), textViewer);
   gtk_box_pack_start(mainBox, menuBar, FALSE, FALSE, 0);
   gtk_box_pack_start(mainBox, scrolledWindow, TRUE, TRUE, 0);
