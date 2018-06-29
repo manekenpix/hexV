@@ -53,7 +53,6 @@ void processFile(char *fileName, HWND textControl)
     fprintf(stderr, "There was an error opening the file\n");
     
   }
-  
   fseek(binaryFile, 0L, SEEK_END);
   sizeOfFile = ftell(binaryFile);
   fseek(binaryFile, 0L, SEEK_SET);
@@ -172,7 +171,6 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
   
   SendMessage(textBox, WM_SETFONT, (WPARAM)hFont, MAKELPARAM(TRUE, 0));
   
-  
   while (GetMessage(&message, 0, 0, 0))
   {
     switch (message.message)
@@ -194,12 +192,10 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
           
           GetOpenFileName(&dialogStruct);
           processFile(fileName, textBox);
-          
         }
         
       }break;
     }
-    
     TranslateMessage(&message);
     DispatchMessage(&message);
   }
