@@ -124,6 +124,17 @@ int processFile(GtkWindow *widget, gpointer VB)
   }
 }
 
+void showAbout(GtkWindow *widget)
+{
+  // TODO(Josue): There must be an easier way to do this, but I can't figure it out
+  char firstAuthor[] = "Josue Quilon Barrios";
+  char *authors[2]; 
+  authors[0] = firstAuthor;
+  authors[1] = NULL;
+  
+  gtk_show_about_dialog(NULL, "program-name", "Hexviewer", "comments", "Software created to view file content in hexadecimal", "authors", authors,"title", "About Hexaviewer", "version", "0.0.3", NULL);
+}
+
 int main(int argc, char *argv[])
 {
   GtkWidget *window;
@@ -132,10 +143,9 @@ int main(int argc, char *argv[])
   GtkTextView *textViewer;
   GtkTextBuffer *textViewerBuffer;
   GtkWidget *menuBar;
-  GtkWidget *dropDownMenu;
-  GMenuItem *barItem;
-  GtkWidget *openFile;
-  GtkWidget *closeApp;
+  GtkWidget *helpMenu, *fileMenu;
+  GMenuItem *fileItem, *helpItem;
+  GtkWidget *openFile, *closeApp, *aboutHelp;
   
   gtk_init(&argc, &argv);
   
@@ -147,14 +157,21 @@ int main(int argc, char *argv[])
   mainBox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 10);
   
   menuBar = gtk_menu_bar_new();
-  dropDownMenu = gtk_menu_new();
-  barItem = gtk_menu_item_new_with_label("File");
+  fileMenu = gtk_menu_new();
+  fileItem = gtk_menu_item_new_with_label("File");
   openFile = gtk_menu_item_new_with_label("Open");
   closeApp = gtk_menu_item_new_with_label("Close");
-  gtk_menu_item_set_submenu(GTK_MENU_ITEM(barItem), dropDownMenu);
-  gtk_menu_shell_append(GTK_MENU_SHELL(menuBar), GTK_WIDGET(barItem));
-  gtk_menu_shell_append(GTK_MENU_SHELL(dropDownMenu), openFile);
-  gtk_menu_shell_append(GTK_MENU_SHELL(dropDownMenu), closeApp);
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(fileItem), fileMenu);
+  gtk_menu_shell_append(GTK_MENU_SHELL(menuBar), GTK_WIDGET(fileItem));
+  gtk_menu_shell_append(GTK_MENU_SHELL(fileMenu), openFile);
+  gtk_menu_shell_append(GTK_MENU_SHELL(fileMenu), closeApp);
+  
+  helpMenu = gtk_menu_new();
+  helpItem = gtk_menu_item_new_with_label("Help");
+  aboutHelp = gtk_menu_item_new_with_label("About");
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(helpItem), helpMenu);
+  gtk_menu_shell_append(GTK_MENU_SHELL(menuBar), GTK_WIDGET(helpItem));
+  gtk_menu_shell_append(GTK_MENU_SHELL(helpMenu), aboutHelp);
   
   scrolledWindow = gtk_scrolled_window_new(NULL, NULL);
   textViewer = gtk_text_view_new();
@@ -172,6 +189,7 @@ int main(int argc, char *argv[])
   g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
   g_signal_connect(closeApp, "activate", G_CALLBACK(gtk_main_quit), NULL);
   g_signal_connect(openFile, "activate", G_CALLBACK(processFile), textViewerBuffer);
+  g_signal_connect(aboutHelp, "activate", G_CALLBACK(showAbout), NULL);
   
   gtk_widget_show_all(window);
   
