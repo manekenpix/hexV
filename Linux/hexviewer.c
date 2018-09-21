@@ -121,7 +121,6 @@ int processFile(GtkWindow *widget, gpointer VB)
 
 void showAbout(GtkWindow *widget)
 {
-  // TODO(Josue): There must be an easier way to do this, but I can't figure it out
   char firstAuthor[] = "Josue Quilon Barrios";
   char *authors[2]; 
   authors[0] = firstAuthor;
