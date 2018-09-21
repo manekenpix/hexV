@@ -5,6 +5,7 @@
 #define ID_FILE_MENU 1
 #define ID_FILE_OPEN 2
 #define ID_FILE_CLOSE 3
+#define ID_ABOUT 4
 
 void copyCharIntoBuffer(char *tx, char* fb, int position)
 {
@@ -157,12 +158,19 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
   AppendMenu(hMenu, MF_STRING, ID_FILE_CLOSE, "&Close");
   AppendMenu(hMenubar, MF_POPUP, (UINT_PTR)hMenu, "&File");
   
+  HMENU helpMenu = CreateMenu();
+  
+  AppendMenu(helpMenu, MF_STRING, ID_ABOUT, "&About");
+  AppendMenu(hMenubar, MF_POPUP, (UINT_PTR)helpMenu, "&Help");
+  
   MSG message;
   
   if (!RegisterClass(&WindowsClass))
     return 1;
   
   HWND MainWindowHandle = CreateWindowEx(WS_EX_CONTROLPARENT, WindowsClass.lpszClassName, "My window", WS_OVERLAPPEDWINDOW | WS_VISIBLE | WS_CLIPCHILDREN, 300, 300, 430, 500, 0, hMenubar, hInstance, NULL);
+  
+  SetWindowText(MainWindowHandle, "Hexviewer");
   
   HWND textBox = CreateWindowEx(0, "EDIT", 0, ES_MULTILINE | WS_VISIBLE | WS_VSCROLL | WS_CHILD, 5, 5, 410, 435, MainWindowHandle, 0, hInstance, NULL);
   
@@ -192,6 +200,10 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
           
           GetOpenFileName(&dialogStruct);
           processFile(fileName, textBox);
+        }
+        else if (message.wParam == ID_ABOUT)
+        {
+          MessageBox(MainWindowHandle, "Message here with all the information", "About Hexviewer",MB_OK | MB_ICONINFORMATION);
         }
         
       }break;
