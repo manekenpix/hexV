@@ -1,0 +1,5 @@
+# Visual studio code hidden folder
+.vscode/
+
+#executable
+hexviewer
