@@ -3,7 +3,7 @@
 File viewer that displays file content in hexadecimal format.
 
 
-## Installing
+## Installation
 
 Download or clone the project and compile:
 
