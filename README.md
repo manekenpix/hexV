@@ -1,6 +1,6 @@
 # Hexadecimal Viewer
 
-File viewer that displays file content in hexadecimal format.
+File viewer that displays file content in hexadecimal format
 
 
 ## Installation
