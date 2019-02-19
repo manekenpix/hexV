@@ -147,6 +147,8 @@ int main(int argc, char *argv[])
   gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
   gtk_window_set_default_size(GTK_WINDOW(window), 400, 500); 
   gtk_window_set_title(GTK_WINDOW(window), "Hexadecimal Viewer");
+  gtk_window_set_icon_from_file(GTK_WINDOW(window), "hv.png", NULL);
+  
   
   mainBox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 10);
   
