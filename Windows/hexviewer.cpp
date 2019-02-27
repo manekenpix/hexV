@@ -6,6 +6,7 @@
 #define ID_FILE_OPEN 2
 #define ID_FILE_CLOSE 3
 #define ID_ABOUT 4
+#define ID_ICON 5
 
 void copyCharIntoBuffer(char *tx, char* fb, int position)
 {
@@ -150,6 +151,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
   WindowsClass.lpfnWndProc = MainWindowCallBack;
   WindowsClass.lpszClassName = "window";
   WindowsClass.lpszMenuName = MAKEINTRESOURCE(ID_FILE_MENU);
+  WindowsClass.hInstance = hInstance;
+  WindowsClass.hIcon = (HICON)LoadImage(NULL, "hv.ico", IMAGE_ICON, 256, 256, LR_LOADFROMFILE );
   
   HMENU hMenubar = CreateMenu();
   HMENU hMenu = CreateMenu();
@@ -168,9 +171,9 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
   if (!RegisterClass(&WindowsClass))
     return 1;
   
-  HWND MainWindowHandle = CreateWindowEx(WS_EX_CONTROLPARENT, WindowsClass.lpszClassName, "My window", WS_OVERLAPPEDWINDOW | WS_VISIBLE | WS_CLIPCHILDREN, 300, 300, 430, 500, 0, hMenubar, hInstance, NULL);
+  HWND MainWindowHandle = CreateWindowEx(WS_EX_CONTROLPARENT, WindowsClass.lpszClassName, "the window", WS_OVERLAPPEDWINDOW | WS_VISIBLE | WS_CLIPCHILDREN, 300, 300, 430, 500, 0, hMenubar, hInstance, NULL);
   
-  SetWindowText(MainWindowHandle, "Hexviewer");
+  SetWindowText(MainWindowHandle, "Hexadecimal Viewer");
   
   HWND textBox = CreateWindowEx(0, "EDIT", 0, ES_MULTILINE | WS_VISIBLE | WS_VSCROLL | WS_CHILD, 5, 5, 410, 435, MainWindowHandle, 0, hInstance, NULL);
   
