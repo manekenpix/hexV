@@ -27,14 +27,66 @@ void copyPositionIntoBuffer(char *fB, int position, int index)
   }
 }
 
-int processFile(GtkWindow *widget, gpointer VB)
+char* processFile(char* fileBuffer, int *length)
+{
+  char text[3];
+  int numberOfLines = *length / 10;
+  int finalSize = *length + 50 + (numberOfLines * 45);
+  
+  char *finalBuffer = (char*)malloc(finalSize);
+  
+  char *topText = "Position        00 01 02 03 04 05 06 07 08 09\n\n";
+  
+  int finalBufferIndex = 0;
+  for (int i = 0; i < 47; i++)
+  {
+    finalBuffer[i] = topText[i];
+  }
+  
+  finalBufferIndex = 47;
+  
+  int followTheCounter = 0;
+  for (int i = 0; i < *length; i++)
+  {
+    unsigned char lPart, hPart;
+    
+    hPart = (fileBuffer[i] >> 4) & 0x0F;
+    lPart = (fileBuffer[i] & 0x0F);
+    
+    text[0] = hPart < 10 ? (hPart += 48) : (hPart += 55);
+    text[1] = lPart < 10 ? (lPart += 48) : (lPart += 55);
+    
+    if ((i + 1) != *length && ((i + 1) % 10) == 0)
+    {
+      text[2] = '\n';
+    }
+    
+    else if ((i % 10) == 0)
+    {
+      text[2] = ' ';
+      copyPositionIntoBuffer(finalBuffer, finalBufferIndex, i);
+      finalBufferIndex += 15;
+      finalBuffer[finalBufferIndex] = 32;
+      finalBufferIndex++;
+    }
+    else
+    {
+      text[2] = ' ';
+    }
+    copyCharIntoBuffer(text, finalBuffer, finalBufferIndex);
+    finalBufferIndex += 3;
+    followTheCounter++;
+  }
+  finalBuffer[finalBufferIndex] = '\0';
+  *length = finalBufferIndex;
+  return finalBuffer;
+}
+
+void getFileHandler(GtkWindow *widget, gpointer VB)
 {
   GtkWidget *dialogue;
   int buttonClicked;
-  char *fileBuffer;
-  unsigned int sizeOfFile;
   GtkTextBuffer *viewerBuffer = VB;
-  char text[3];
   
   dialogue = gtk_file_chooser_dialog_new("Open File", NULL, GTK_FILE_CHOOSER_ACTION_OPEN, ("_Cancel"), GTK_RESPONSE_CANCEL, ("_Accept"),  GTK_RESPONSE_ACCEPT, NULL);
   
@@ -43,79 +95,34 @@ int processFile(GtkWindow *widget, gpointer VB)
   {
     GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialogue);
     char *fileName = gtk_file_chooser_get_filename(chooser);
-    FILE *binaryFile;
     
     gtk_widget_destroy(dialogue);
-    binaryFile = fopen(fileName, "rb"); 
-    if (binaryFile == NULL){
+    FILE *file = fopen(fileName, "rb"); 
+    if (file == NULL){
       fprintf(stderr, "There was an error opening the file\n");
-      return 1;
     }
-    
-    fseek(binaryFile, 0L, SEEK_END);
-    sizeOfFile = ftell(binaryFile);
-    fseek(binaryFile, 0L, SEEK_SET);
-    fileBuffer = (char*)malloc(sizeOfFile);
-    fread(fileBuffer, sizeof(char), sizeOfFile, binaryFile);
-    fclose(binaryFile);
-    
-    int numberOfLines = sizeOfFile / 10;
-    int finalSize = sizeOfFile + 50 + (numberOfLines * 45);
-    
-    char *finalBuffer = (char*)malloc(finalSize);
-    
-    char *topText = "Position        00 01 02 03 04 05 06 07 08 09\n\n";
-    
-    int finalBufferIndex = 0;
-    for (int i = 0; i < 47; i++)
+    else
     {
-      finalBuffer[i] = topText[i];
+      char *fileBuffer;
+      int *length = (int*)malloc(4);
+      fseek(file, 0L, SEEK_END);
+      *length = ftell(file);
+      fseek(file, 0L, SEEK_SET);
+      fileBuffer = (char*)malloc(*length);
+      fread(fileBuffer, sizeof(char), *length, file);
+      fclose(file);
+      
+      char* finalBuffer = processFile(fileBuffer, length);
+      
+      gtk_text_buffer_set_text(viewerBuffer, finalBuffer, *length);
+      free(fileBuffer);
+      free(finalBuffer);
+      free(length);
     }
-    
-    finalBufferIndex = 47;
-    
-    int followTheCounter = 0;
-    for (int i = 0; i < sizeOfFile; i++)
-    {
-      unsigned char lPart, hPart;
-      
-      hPart = (fileBuffer[i] >> 4) & 0x0F;
-      lPart = (fileBuffer[i] & 0x0F);
-      
-      text[0] = hPart < 10 ? (hPart += 48) : (hPart += 55);
-      text[1] = lPart < 10 ? (lPart += 48) : (lPart += 55);
-      
-      if ((i + 1) != sizeOfFile && ((i + 1) % 10) == 0)
-      {
-        text[2] = '\n';
-      }
-      
-      else if ((i % 10) == 0)
-      {
-        text[2] = ' ';
-        copyPositionIntoBuffer(finalBuffer, finalBufferIndex, i);
-        finalBufferIndex += 15;
-        finalBuffer[finalBufferIndex] = 32;
-        finalBufferIndex++;
-      }
-      else
-      {
-        text[2] = ' ';
-      }
-      copyCharIntoBuffer(text, finalBuffer, finalBufferIndex);
-      finalBufferIndex += 3;
-      followTheCounter++;
-    }
-    finalBuffer[finalBufferIndex] = '\0';
-    gtk_text_buffer_set_text(viewerBuffer, finalBuffer, finalBufferIndex);
-    free(fileBuffer);
-    free(finalBuffer);
-    return 0;
   }
   else
   {
     gtk_widget_destroy(dialogue);
-    return 0;
   }
 }
 
@@ -189,7 +196,7 @@ int main(int argc, char *argv[])
   
   g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
   g_signal_connect(closeApp, "activate", G_CALLBACK(gtk_main_quit), NULL);
-  g_signal_connect(openFile, "activate", G_CALLBACK(processFile), textViewerBuffer);
+  g_signal_connect(openFile, "activate", G_CALLBACK(getFileHandler), textViewerBuffer);
   g_signal_connect(aboutHelp, "activate", G_CALLBACK(showAbout), NULL);
   
   gtk_widget_show_all(window);
