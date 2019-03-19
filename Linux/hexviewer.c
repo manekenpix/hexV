@@ -13,8 +13,9 @@ long long int powForInts(int base, int exp)
     result = 1;
   else
   {
+    base = (long long int)base;
     for (int i = 1; i < exp; i++)
-      result *= (long long int)base;
+      result *= base;
   }
   return result;
 }
@@ -95,6 +96,7 @@ void getFileHandler(GtkWindow *widget, gpointer VB)
   {
     GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialogue);
     char *fileName = gtk_file_chooser_get_filename(chooser);
+    printf("%s\n", gtk_file_chooser_get_filename(chooser));
     
     gtk_widget_destroy(dialogue);
     FILE *file = fopen(fileName, "rb"); 
@@ -124,6 +126,45 @@ void getFileHandler(GtkWindow *widget, gpointer VB)
   {
     gtk_widget_destroy(dialogue);
   }
+}
+
+void processDrop(GtkWindow *widget,  GdkDragContext *context, gint x, gint y, GtkSelectionData *data, guint info, guint time, gpointer VB)
+{
+  GtkTextBuffer *viewerBuffer = VB;
+  
+  gint selectionLength = gtk_selection_data_get_length(data);
+  const gchar *temp = (gchar*)gtk_selection_data_get_data(data);
+  
+  gchar* fileName = (gchar*)malloc(selectionLength);
+  for (int i = 7; i < selectionLength - 1; ++i)
+  {
+    fileName[i- 7] = temp[i];
+  }
+  fileName[selectionLength - 9] = '\0';
+  
+  FILE *file = fopen(fileName, "rb"); 
+  if (file == NULL){
+    fprintf(stderr, "There was an error opening the file\n");
+  }
+  else
+  {
+    char *fileBuffer;
+    int *length = (int*)malloc(4);
+    fseek(file, 0L, SEEK_END);
+    *length = ftell(file);
+    fseek(file, 0L, SEEK_SET);
+    fileBuffer = (char*)malloc(*length);
+    fread(fileBuffer, sizeof(char), *length, file);
+    fclose(file);
+    
+    char* finalBuffer = processFile(fileBuffer, length);
+    
+    gtk_text_buffer_set_text(viewerBuffer, finalBuffer, *length);
+    free(fileBuffer);
+    free(finalBuffer);
+    free(length);
+  }
+  
 }
 
 void showAbout(GtkWindow *widget)
@@ -194,10 +235,16 @@ int main(int argc, char *argv[])
   gtk_box_pack_start(mainBox, scrolledWindow, TRUE, TRUE, 0);
   gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(mainBox));
   
+  GtkTargetEntry *targetEntry;
+  targetEntry = gtk_target_entry_new("text/uri-list", 0, 0);
+  
+  gtk_drag_dest_set(window, GTK_DEST_DEFAULT_DROP, targetEntry, 1, GDK_ACTION_COPY);
+  
   g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
   g_signal_connect(closeApp, "activate", G_CALLBACK(gtk_main_quit), NULL);
   g_signal_connect(openFile, "activate", G_CALLBACK(getFileHandler), textViewerBuffer);
   g_signal_connect(aboutHelp, "activate", G_CALLBACK(showAbout), NULL);
+  g_signal_connect(textViewer, "drag-data-received", G_CALLBACK(processDrop), textViewerBuffer);
   
   gtk_widget_show_all(window);
   
