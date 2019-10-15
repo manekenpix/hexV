@@ -1,4 +1,4 @@
-# hexV <img align="left" width="100" height="100" src=https://github.com/manekenpix/hexV/blob/master/Linux/hv.png>
+# hexV <img align="left" width="100" height="100" src=https://github.com/manekenpix/hexV/blob/master/hv.png>
 
 File viewer that displays file content in hexadecimal format
 
@@ -7,14 +7,13 @@ File viewer that displays file content in hexadecimal format
 
 Download or clone the project and compile:
 
-Linux
+```sh
+git clone git@github.com:manekenpix/hexV.git
+make
 ```
-gcc -Wall -o2 hexviewer.c -o hexviewer `pkg-config --libs --cflags gtk+-3.0`
-```
-
-Windows
-```
-cl hexviewer.cpp user32.lib Gdi32.lib Comdlg32.lib
+Run:
+```sh
+./hexV
 ```
 
 ## Upcoming features
