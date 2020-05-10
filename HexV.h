@@ -11,6 +11,8 @@ class HexV : public Gtk::Window
   const size_t height = 500;
   const uint32_t textViewWidth = 55;
   const char * topText = " Position                  00 01 02 03 04 05 06 07 08 09";
+  char * buffer = nullptr;
+  uint32_t bufferSize = 0;
 
   uint32_t textBufferSize = 0;
   Glib::ustring ustringBuffer;
@@ -32,13 +34,14 @@ class HexV : public Gtk::Window
   Gtk::TextView * textView;
   Glib::RefPtr<Gtk::TextBuffer> textBuffer;
 
+  /****** Helpers ******/
   void openFile();
+  void processor();
   inline uint8_t byteToChar( char c )
   {
     return ( c < 10 ? ( c += 48 ) : ( c += 55 ) );
   };
   void about();
-  uint32_t textBufferSizeFromBufferSize( uint32_t bufferS );
   void errorMessage( Glib::ustring text, Glib::ustring subtext );
   void exit()
   {

@@ -97,10 +97,6 @@ void HexV::openFile()
   fileDialog.close();
 
   if ( response == Gtk::RESPONSE_OK ) {
-    char high, low;
-    char * buffer = nullptr;
-    uint32_t bufferSize = 0;
-
     std::cout << "Opening: " << fileDialog.get_filename() << std::endl;
     std::fstream file;
     file.open( fileDialog.get_filename(), std::fstream::in | std::fstream::binary );
@@ -120,34 +116,7 @@ void HexV::openFile()
       if ( bufferSize ) {
         buffer = new char[bufferSize];
         file.read( ( buffer ), bufferSize );
-
-        Glib::ustring spaces = "                    "; // 20 spaces
-        Glib::ustring counter = "000000"; // 6 digits
-        uint32_t textViewBufferIndex = 26; // 20 spaces + 6 digits for the counter
-
-        ustringBuffer += ( counter + spaces );
-        for ( uint32_t i = 0; i < bufferSize; ++i ) {
-          high = byteToChar( ( buffer[i] >> 4 ) & 0x0F );
-          low = byteToChar( buffer[i] & 0x0F );
-
-          ustringBuffer += Glib::ustring( 1, high );
-          ustringBuffer += Glib::ustring( 1, low );
-          textViewBufferIndex += 2;
-
-          if ( textViewBufferIndex % textViewWidth == 0 ) {
-            ustringBuffer += Glib::ustring( 1, '\n' );
-            ustringBuffer += ( counter + spaces );
-            textViewBufferIndex += 26;
-          }
-          else {
-            ustringBuffer += Glib::ustring( 1, ' ' );
-            textViewBufferIndex += 1;
-          }
-        }
-        textBuffer->set_text( ustringBuffer );
-
-        std::cout << "Size of bufferSize: " << bufferSize << std::endl;
-        std::cout << "textViewBufferIndex: " << textViewBufferIndex << std::endl;
+        processor();
         delete[] buffer;
       }
       file.close();
@@ -157,21 +126,42 @@ void HexV::openFile()
   }
 }
 
-uint32_t HexV::textBufferSizeFromBufferSize( uint32_t bufferS )
+void HexV::processor()
 {
-  uint32_t lines = ( bufferS * 2 ) / textViewWidth;
-  uint32_t leftOver = ( bufferS * 2 ) % textViewWidth;
+  char high, low;
+  Glib::ustring spaces = "                    "; // 20 spaces
+  Glib::ustring counter = "000000"; // 6 digits
+  uint32_t textViewBufferIndex = 26; // 20 spaces + 6 digits for the counter
 
-  uint32_t total = ( bufferS * 2 ) + lines + leftOver;
-  std::cout << "Size of textBufferSize: " << total << std::endl;
+  ustringBuffer += ( counter + spaces );
+  for ( uint32_t i = 0; i < bufferSize; ++i ) {
+    high = byteToChar( ( buffer[i] >> 4 ) & 0x0F );
+    low = byteToChar( buffer[i] & 0x0F );
 
-  return total;
+    ustringBuffer += Glib::ustring( 1, high );
+    ustringBuffer += Glib::ustring( 1, low );
+    textViewBufferIndex += 2;
+
+    if ( textViewBufferIndex % textViewWidth == 0 ) {
+      ustringBuffer += Glib::ustring( 1, '\n' );
+      ustringBuffer += ( counter + spaces );
+      textViewBufferIndex += 26;
+    }
+    else {
+      ustringBuffer += Glib::ustring( 1, ' ' );
+      textViewBufferIndex += 1;
+    }
+  }
+  textBuffer->set_text( ustringBuffer );
+
+  std::cout << "Size of bufferSize: " << bufferSize << std::endl;
+  std::cout << "textViewBufferIndex: " << textViewBufferIndex << std::endl;
 }
 
 void HexV::about()
 {
   Gtk::AboutDialog aboutD;
-  aboutD.set_authors( {"Josue Quilon Barrios"} );
+  aboutD.set_authors( { "Josue Quilon Barrios" } );
   aboutD.set_website( "https://github.com/manekenpix" );
   aboutD.set_icon_from_file( "hv.png" );
   aboutD.set_program_name( "hexV" );
