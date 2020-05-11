@@ -116,7 +116,7 @@ void HexV::openFile()
       if ( bufferSize ) {
         buffer = new char[bufferSize];
         file.read( ( buffer ), bufferSize );
-        processor();
+        process();
         delete[] buffer;
       }
       file.close();
@@ -126,7 +126,7 @@ void HexV::openFile()
   }
 }
 
-void HexV::processor()
+void HexV::process()
 {
   char high, low;
   Glib::ustring spaces = "                    "; // 20 spaces

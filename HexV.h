@@ -36,7 +36,7 @@ class HexV : public Gtk::Window
 
   /****** Helpers ******/
   void openFile();
-  void processor();
+  void process();
   inline uint8_t byteToChar( char c )
   {
     return ( c < 10 ? ( c += 48 ) : ( c += 55 ) );
