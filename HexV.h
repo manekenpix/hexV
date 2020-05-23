@@ -7,9 +7,9 @@
 
 class HexV : public Gtk::Window
 {
-  const size_t width = 400;
+  const size_t width = 475;
   const size_t height = 500;
-  const uint32_t textViewWidth = 55;
+  const uint32_t textViewWidth = 66;
   const char * topText = " Position                  00 01 02 03 04 05 06 07 08 09";
   char * buffer = nullptr;
   uint32_t bufferSize = 0;

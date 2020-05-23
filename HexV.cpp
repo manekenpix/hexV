@@ -5,7 +5,6 @@
 HexV::HexV()
 {
   // Window
-
   set_default_size( width, height );
   set_resizable( false );
   set_position( Gtk::WIN_POS_CENTER_ALWAYS );
@@ -80,7 +79,7 @@ HexV::HexV()
   context->set_font_description( fontDescription );
 
   bigBox->pack_start( *menubar, Gtk::PACK_SHRINK, 0 );
-  bigBox->pack_start( *position, false, false, 10 );
+  // bigBox->pack_start( *position, false, false, 10 );
   bigBox->pack_start( *scrolledWindow, true, true, 0 );
 
   add( *bigBox );
@@ -129,26 +128,29 @@ void HexV::openFile()
 void HexV::process()
 {
   char high, low;
-  Glib::ustring spaces = "                    "; // 20 spaces
-  Glib::ustring counter = "000000"; // 6 digits
-  uint32_t textViewBufferIndex = 26; // 20 spaces + 6 digits for the counter
+  uint32_t textViewBufferIndex = 3; // first 19 characters
+  Glib::ustring ascii, hex, line;
+  ustringBuffer = "";
 
-  ustringBuffer += ( counter + spaces );
   for ( uint32_t i = 0; i < bufferSize; ++i ) {
     high = byteToChar( ( buffer[i] >> 4 ) & 0x0F );
     low = byteToChar( buffer[i] & 0x0F );
 
-    ustringBuffer += Glib::ustring( 1, high );
-    ustringBuffer += Glib::ustring( 1, low );
+    ascii += buffer[i] > 33 && buffer[i] < 127 ? Glib::ustring( 1, buffer[i] ) : Glib::ustring( 1, '.' );
+    textViewBufferIndex += 1;
+
+    hex += Glib::ustring( 1, high );
+    hex += Glib::ustring( 1, low );
     textViewBufferIndex += 2;
 
     if ( textViewBufferIndex % textViewWidth == 0 ) {
-      ustringBuffer += Glib::ustring( 1, '\n' );
-      ustringBuffer += ( counter + spaces );
-      textViewBufferIndex += 26;
+      line = ascii + " | " + hex + Glib::ustring( 1, '\n' );
+      ustringBuffer += line;
+      line = hex = ascii = "";
+      textViewBufferIndex += 3;
     }
     else {
-      ustringBuffer += Glib::ustring( 1, ' ' );
+      hex += Glib::ustring( 1, ' ' );
       textViewBufferIndex += 1;
     }
   }
@@ -161,7 +163,7 @@ void HexV::process()
 void HexV::about()
 {
   Gtk::AboutDialog aboutD;
-  aboutD.set_authors( { "Josue Quilon Barrios" } );
+  aboutD.set_authors( {"Josue Quilon Barrios"} );
   aboutD.set_website( "https://github.com/manekenpix" );
   aboutD.set_icon_from_file( "hv.png" );
   aboutD.set_program_name( "hexV" );
