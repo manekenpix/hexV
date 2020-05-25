@@ -32,6 +32,8 @@ class HexV : public Gtk::Window
   Gtk::Label * position;
   Gtk::ScrolledWindow * scrolledWindow;
   Gtk::TextView * textView;
+  Glib::RefPtr<Gtk::CssProvider> cssProvider;
+  Glib::RefPtr<Gtk::StyleContext> styleContext;
   Glib::RefPtr<Gtk::TextBuffer> textBuffer;
 
   /****** Helpers ******/

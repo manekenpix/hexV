@@ -61,7 +61,18 @@ HexV::HexV()
   textBuffer = Gtk::TextBuffer::create();
 
   textView->set_buffer( textBuffer );
-  textView->set_monospace();
+
+  Glib::ustring css = ".view {font-family: monospace; font-size: 11px}";
+  cssProvider = Gtk::CssProvider::create();
+  styleContext = Gtk::StyleContext::create();
+
+  try {
+    cssProvider->load_from_data( css );
+    textView->get_style_context()->add_provider_for_screen( Gdk::Screen::get_default(), cssProvider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION );
+  }
+  catch ( const Gtk::CssProviderError & ex ) {
+    std::cerr << "CssProviderError: " << ex.what() << std::endl;
+  }
 
   // Scrolled Window
   scrolledWindow = Gtk::manage( new Gtk::ScrolledWindow() );
@@ -69,17 +80,7 @@ HexV::HexV()
   scrolledWindow->set_border_width( 5 );
   scrolledWindow->add( *textView );
 
-  // Position Box
-  position = Gtk::manage( new Gtk::Label() );
-  position->set_label( Glib::ustring( topText ) );
-  position->set_halign( Gtk::Align::ALIGN_START );
-  auto context = position->get_pango_context();
-  auto fontDescription = context->get_font_description();
-  fontDescription.set_family( "Monospace" );
-  context->set_font_description( fontDescription );
-
   bigBox->pack_start( *menubar, Gtk::PACK_SHRINK, 0 );
-  // bigBox->pack_start( *position, false, false, 10 );
   bigBox->pack_start( *scrolledWindow, true, true, 0 );
 
   add( *bigBox );
@@ -156,14 +157,13 @@ void HexV::process()
   }
   textBuffer->set_text( ustringBuffer );
 
-  std::cout << "Size of bufferSize: " << bufferSize << std::endl;
   std::cout << "textViewBufferIndex: " << textViewBufferIndex << std::endl;
 }
 
 void HexV::about()
 {
   Gtk::AboutDialog aboutD;
-  aboutD.set_authors( {"Josue Quilon Barrios"} );
+  aboutD.set_authors( { "Josue Quilon Barrios" } );
   aboutD.set_website( "https://github.com/manekenpix" );
   aboutD.set_icon_from_file( "hv.png" );
   aboutD.set_program_name( "hexV" );
