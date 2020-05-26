@@ -1,4 +1,4 @@
-# hexV <img align="left" width="100" height="100" src=https://github.com/manekenpix/hexV/blob/master/hv.png>
+# hexV <img align="left" width="100" height="100" src=https://github.com/manekenpix/hexV/blob/master/src/hv.png>
 
 File viewer that displays file content in hexadecimal format
 
