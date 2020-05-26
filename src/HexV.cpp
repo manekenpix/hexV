@@ -5,7 +5,6 @@
 HexV::HexV()
 {
   // Window
-
   set_default_size( width, height );
   set_resizable( false );
   set_position( Gtk::WIN_POS_CENTER_ALWAYS );
@@ -62,7 +61,17 @@ HexV::HexV()
   textBuffer = Gtk::TextBuffer::create();
 
   textView->set_buffer( textBuffer );
-  textView->set_monospace();
+
+  Glib::ustring css = ".view {font-family: monospace; font-size: 11px}";
+  cssProvider = Gtk::CssProvider::create();
+
+  try {
+    cssProvider->load_from_data( css );
+    textView->get_style_context()->add_provider_for_screen( Gdk::Screen::get_default(), cssProvider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION );
+  }
+  catch ( const Gtk::CssProviderError & ex ) {
+    std::cerr << "CssProviderError: " << ex.what() << std::endl;
+  }
 
   // Scrolled Window
   scrolledWindow = Gtk::manage( new Gtk::ScrolledWindow() );
@@ -70,17 +79,7 @@ HexV::HexV()
   scrolledWindow->set_border_width( 5 );
   scrolledWindow->add( *textView );
 
-  // Position Box
-  position = Gtk::manage( new Gtk::Label() );
-  position->set_label( Glib::ustring( topText ) );
-  position->set_halign( Gtk::Align::ALIGN_START );
-  auto context = position->get_pango_context();
-  auto fontDescription = context->get_font_description();
-  fontDescription.set_family( "Monospace" );
-  context->set_font_description( fontDescription );
-
   bigBox->pack_start( *menubar, Gtk::PACK_SHRINK, 0 );
-  bigBox->pack_start( *position, false, false, 10 );
   bigBox->pack_start( *scrolledWindow, true, true, 0 );
 
   add( *bigBox );
@@ -97,10 +96,6 @@ void HexV::openFile()
   fileDialog.close();
 
   if ( response == Gtk::RESPONSE_OK ) {
-    char high, low;
-    char * buffer = nullptr;
-    uint32_t bufferSize = 0;
-
     std::cout << "Opening: " << fileDialog.get_filename() << std::endl;
     std::fstream file;
     file.open( fileDialog.get_filename(), std::fstream::in | std::fstream::binary );
@@ -120,34 +115,7 @@ void HexV::openFile()
       if ( bufferSize ) {
         buffer = new char[bufferSize];
         file.read( ( buffer ), bufferSize );
-
-        Glib::ustring spaces = "                    "; // 20 spaces
-        Glib::ustring counter = "000000"; // 6 digits
-        uint32_t textViewBufferIndex = 26; // 20 spaces + 6 digits for the counter
-
-        ustringBuffer += ( counter + spaces );
-        for ( uint32_t i = 0; i < bufferSize; ++i ) {
-          high = byteToChar( ( buffer[i] >> 4 ) & 0x0F );
-          low = byteToChar( buffer[i] & 0x0F );
-
-          ustringBuffer += Glib::ustring( 1, high );
-          ustringBuffer += Glib::ustring( 1, low );
-          textViewBufferIndex += 2;
-
-          if ( textViewBufferIndex % textViewWidth == 0 ) {
-            ustringBuffer += Glib::ustring( 1, '\n' );
-            ustringBuffer += ( counter + spaces );
-            textViewBufferIndex += 26;
-          }
-          else {
-            ustringBuffer += Glib::ustring( 1, ' ' );
-            textViewBufferIndex += 1;
-          }
-        }
-        textBuffer->set_text( ustringBuffer );
-
-        std::cout << "Size of bufferSize: " << bufferSize << std::endl;
-        std::cout << "textViewBufferIndex: " << textViewBufferIndex << std::endl;
+        process();
         delete[] buffer;
       }
       file.close();
@@ -157,25 +125,48 @@ void HexV::openFile()
   }
 }
 
-uint32_t HexV::textBufferSizeFromBufferSize( uint32_t bufferS )
+void HexV::process()
 {
-  uint32_t lines = ( bufferS * 2 ) / textViewWidth;
-  uint32_t leftOver = ( bufferS * 2 ) % textViewWidth;
+  char high, low;
+  uint32_t textViewBufferIndex = 3; // first 19 characters
+  Glib::ustring ascii, hex, line;
+  ustringBuffer = "";
 
-  uint32_t total = ( bufferS * 2 ) + lines + leftOver;
-  std::cout << "Size of textBufferSize: " << total << std::endl;
+  for ( uint32_t i = 0; i < bufferSize; ++i ) {
+    high = byteToChar( ( buffer[i] >> 4 ) & 0x0F );
+    low = byteToChar( buffer[i] & 0x0F );
 
-  return total;
+    ascii += buffer[i] > 33 && buffer[i] < 127 ? Glib::ustring( 1, buffer[i] ) : Glib::ustring( 1, '.' );
+    textViewBufferIndex += 1;
+
+    hex += Glib::ustring( 1, high );
+    hex += Glib::ustring( 1, low );
+    textViewBufferIndex += 2;
+
+    if ( textViewBufferIndex % textViewWidth == 0 ) {
+      line = ascii + " | " + hex + Glib::ustring( 1, '\n' );
+      ustringBuffer += line;
+      line = hex = ascii = "";
+      textViewBufferIndex += 3;
+    }
+    else {
+      hex += Glib::ustring( 1, ' ' );
+      textViewBufferIndex += 1;
+    }
+  }
+  textBuffer->set_text( ustringBuffer );
+
+  std::cout << "textViewBufferIndex: " << textViewBufferIndex << std::endl;
 }
 
 void HexV::about()
 {
   Gtk::AboutDialog aboutD;
-  aboutD.set_authors( {"Josue Quilon Barrios"} );
+  aboutD.set_authors( { "Josue Quilon Barrios" } );
   aboutD.set_website( "https://github.com/manekenpix" );
   aboutD.set_icon_from_file( "hv.png" );
   aboutD.set_program_name( "hexV" );
-  aboutD.set_version( "0.0.1" );
+  aboutD.set_version( "0.1" );
   aboutD.set_license_type( Gtk::LICENSE_MIT_X11 );
   aboutD.set_comments( "Small viewer that shows the content of a file in hexadecimal" );
 
