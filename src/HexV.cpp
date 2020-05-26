@@ -64,7 +64,6 @@ HexV::HexV()
 
   Glib::ustring css = ".view {font-family: monospace; font-size: 11px}";
   cssProvider = Gtk::CssProvider::create();
-  styleContext = Gtk::StyleContext::create();
 
   try {
     cssProvider->load_from_data( css );
@@ -167,7 +166,7 @@ void HexV::about()
   aboutD.set_website( "https://github.com/manekenpix" );
   aboutD.set_icon_from_file( "hv.png" );
   aboutD.set_program_name( "hexV" );
-  aboutD.set_version( "0.0.1" );
+  aboutD.set_version( "0.1" );
   aboutD.set_license_type( Gtk::LICENSE_MIT_X11 );
   aboutD.set_comments( "Small viewer that shows the content of a file in hexadecimal" );
 
