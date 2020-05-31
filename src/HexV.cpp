@@ -49,14 +49,13 @@ HexV::HexV()
   helpPlaceHolder->set_submenu( *helpMenu );
   helpMenu->append( *aboutPlaceHolder );
 
-  // Events
-  openPlaceHolder->signal_activate().connect( sigc::mem_fun( *this, &HexV::openFile ) );
-  closePlaceHolder->signal_activate().connect( sigc::mem_fun( *this, &HexV::exit ) );
-  aboutPlaceHolder->signal_activate().connect( sigc::mem_fun( *this, &HexV::about ) );
+  // Targets
+  listTargets.push_back( Gtk::TargetEntry( "text/uri-list" ) );
 
   // Text Viewer
   textView = Gtk::manage( new Gtk::TextView() );
   textView->set_wrap_mode( Gtk::WRAP_WORD );
+  textView->drag_dest_set( listTargets );
 
   textBuffer = Gtk::TextBuffer::create();
 
@@ -82,6 +81,12 @@ HexV::HexV()
   bigBox->pack_start( *menubar, Gtk::PACK_SHRINK, 0 );
   bigBox->pack_start( *scrolledWindow, true, true, 0 );
 
+  // Events
+  openPlaceHolder->signal_activate().connect( sigc::mem_fun( *this, &HexV::openFile ) );
+  closePlaceHolder->signal_activate().connect( sigc::mem_fun( *this, &HexV::exit ) );
+  aboutPlaceHolder->signal_activate().connect( sigc::mem_fun( *this, &HexV::about ) );
+  textView->signal_drag_data_received().connect( sigc::mem_fun( *this, &HexV::openDroppedFile ) );
+
   add( *bigBox );
   show_all();
 }
@@ -102,6 +107,51 @@ void HexV::openFile()
 
     if ( file.is_open() ) {
       Glib::ustring fileName( fileDialog.get_filename() );
+      Glib::ustring::size_type lastSlash = fileName.find_last_of( "/" );
+      Glib::ustring::size_type size = fileName.size();
+
+      fileName = fileName.substr( lastSlash + 1, size - lastSlash );
+      headerBar->set_subtitle( fileName );
+
+      file.seekg( 0, std::ios::end );
+      bufferSize = ( uint32_t )( file.tellg() );
+      file.seekg( 0, std::ios::beg );
+
+      if ( bufferSize ) {
+        buffer = new char[bufferSize];
+        file.read( ( buffer ), bufferSize );
+        process();
+        delete[] buffer;
+      }
+      file.close();
+    }
+    else
+      errorMessage( "Error Opening File", "There was a problem accessing the file" );
+  }
+}
+
+void HexV::openDroppedFile( const Glib::RefPtr<Gdk::DragContext> & context, int, int, const Gtk::SelectionData & selection_data, guint, guint time )
+{
+  context->drag_finish( false, false, time );
+
+  const int length = selection_data.get_length();
+  const std::string encodedSpace( "%20" );
+
+  if ( ( length >= 0 ) && ( selection_data.get_format() == 8 ) ) {
+    char offset = 7;
+    std::string path( selection_data.get_data_as_string().substr( offset, selection_data.get_data_as_string().length() - offset - 2 ) );
+
+    if ( path.find( encodedSpace ) != std::string::npos )
+      path = path.replace( path.find( encodedSpace ), encodedSpace.length(), " " );
+
+    std::cout << "Last char " << path[path.length() - 2] << std::endl;
+    Glib::ustring fileName( path );
+
+    std::cout << "Opening: " << fileName << std::endl;
+    std::fstream file;
+    file.open( fileName, std::fstream::in | std::fstream::binary );
+
+    if ( file.is_open() ) {
       Glib::ustring::size_type lastSlash = fileName.find_last_of( "/" );
       Glib::ustring::size_type size = fileName.size();
 
