@@ -1,6 +1,6 @@
+#include "HexV.h"
 #include <fstream>
 #include <iostream>
-#include "HexV.h"
 
 HexV::HexV()
 {
@@ -66,9 +66,11 @@ HexV::HexV()
 
   try {
     cssProvider->load_from_data( css );
-    textView->get_style_context()->add_provider_for_screen( Gdk::Screen::get_default(), cssProvider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION );
-  }
-  catch ( const Gtk::CssProviderError & ex ) {
+    textView->get_style_context()->add_provider_for_screen(
+      Gdk::Screen::get_default(),
+      cssProvider,
+      GTK_STYLE_PROVIDER_PRIORITY_APPLICATION );
+  } catch ( const Gtk::CssProviderError& ex ) {
     std::cerr << "CssProviderError: " << ex.what() << std::endl;
   }
 
@@ -82,18 +84,24 @@ HexV::HexV()
   bigBox->pack_start( *scrolledWindow, true, true, 0 );
 
   // Events
-  openPlaceHolder->signal_activate().connect( sigc::mem_fun( *this, &HexV::openFile ) );
-  closePlaceHolder->signal_activate().connect( sigc::mem_fun( *this, &HexV::exit ) );
-  aboutPlaceHolder->signal_activate().connect( sigc::mem_fun( *this, &HexV::about ) );
-  textView->signal_drag_data_received().connect( sigc::mem_fun( *this, &HexV::openDroppedFile ) );
+  openPlaceHolder->signal_activate().connect(
+    sigc::mem_fun( *this, &HexV::openFile ) );
+  closePlaceHolder->signal_activate().connect(
+    sigc::mem_fun( *this, &HexV::exit ) );
+  aboutPlaceHolder->signal_activate().connect(
+    sigc::mem_fun( *this, &HexV::about ) );
+  textView->signal_drag_data_received().connect(
+    sigc::mem_fun( *this, &HexV::openDroppedFile ) );
 
   add( *bigBox );
   show_all();
 }
 
-void HexV::openFile()
+void
+HexV::openFile()
 {
-  Gtk::FileChooserDialog fileDialog( *this, Glib::ustring( "Open File" ), Gtk::FILE_CHOOSER_ACTION_OPEN );
+  Gtk::FileChooserDialog fileDialog(
+    *this, Glib::ustring( "Open File" ), Gtk::FILE_CHOOSER_ACTION_OPEN );
   fileDialog.add_button( Glib::ustring( "_Open" ), Gtk::RESPONSE_OK );
   fileDialog.add_button( Glib::ustring( "_Cancel" ), Gtk::RESPONSE_CANCEL );
 
@@ -103,7 +111,8 @@ void HexV::openFile()
   if ( response == Gtk::RESPONSE_OK ) {
     std::cout << "Opening: " << fileDialog.get_filename() << std::endl;
     std::fstream file;
-    file.open( fileDialog.get_filename(), std::fstream::in | std::fstream::binary );
+    file.open( fileDialog.get_filename(),
+               std::fstream::in | std::fstream::binary );
 
     if ( file.is_open() ) {
       Glib::ustring fileName( fileDialog.get_filename() );
@@ -124,13 +133,19 @@ void HexV::openFile()
         delete[] buffer;
       }
       file.close();
-    }
-    else
-      errorMessage( "Error Opening File", "There was a problem accessing the file" );
+    } else
+      errorMessage( "Error Opening File",
+                    "There was a problem accessing the file" );
   }
 }
 
-void HexV::openDroppedFile( const Glib::RefPtr<Gdk::DragContext> & context, int, int, const Gtk::SelectionData & selection_data, guint, guint time )
+void
+HexV::openDroppedFile( const Glib::RefPtr<Gdk::DragContext>& context,
+                       int,
+                       int,
+                       const Gtk::SelectionData& selection_data,
+                       guint,
+                       guint time )
 {
   context->drag_finish( false, false, time );
 
@@ -138,11 +153,13 @@ void HexV::openDroppedFile( const Glib::RefPtr<Gdk::DragContext> & context, int,
   const std::string encodedSpace( "%20" );
 
   if ( ( length >= 0 ) && ( selection_data.get_format() == 8 ) ) {
-    char offset = 7;
-    std::string path( selection_data.get_data_as_string().substr( offset, selection_data.get_data_as_string().length() - offset - 2 ) );
+    uint8_t offset = 7;
+    std::string path( selection_data.get_data_as_string().substr(
+      offset, selection_data.get_data_as_string().length() - offset - 2 ) );
 
     if ( path.find( encodedSpace ) != std::string::npos )
-      path = path.replace( path.find( encodedSpace ), encodedSpace.length(), " " );
+      path =
+        path.replace( path.find( encodedSpace ), encodedSpace.length(), " " );
 
     std::cout << "Last char " << path[path.length() - 2] << std::endl;
     Glib::ustring fileName( path );
@@ -169,13 +186,14 @@ void HexV::openDroppedFile( const Glib::RefPtr<Gdk::DragContext> & context, int,
         delete[] buffer;
       }
       file.close();
-    }
-    else
-      errorMessage( "Error Opening File", "There was a problem accessing the file" );
+    } else
+      errorMessage( "Error Opening File",
+                    "There was a problem accessing the file" );
   }
 }
 
-void HexV::process()
+void
+HexV::process()
 {
   char high, low;
   uint32_t textViewBufferIndex = 3; // first 19 characters
@@ -186,7 +204,8 @@ void HexV::process()
     high = byteToChar( ( buffer[i] >> 4 ) & 0x0F );
     low = byteToChar( buffer[i] & 0x0F );
 
-    ascii += buffer[i] > 33 && buffer[i] < 127 ? Glib::ustring( 1, buffer[i] ) : Glib::ustring( 1, '.' );
+    ascii += buffer[i] > 33 && buffer[i] < 127 ? Glib::ustring( 1, buffer[i] )
+                                               : Glib::ustring( 1, '.' );
     textViewBufferIndex += 1;
 
     hex += Glib::ustring( 1, high );
@@ -198,8 +217,7 @@ void HexV::process()
       ustringBuffer += line;
       line = hex = ascii = "";
       textViewBufferIndex += 3;
-    }
-    else {
+    } else {
       hex += Glib::ustring( 1, ' ' );
       textViewBufferIndex += 1;
     }
@@ -209,7 +227,8 @@ void HexV::process()
   std::cout << "textViewBufferIndex: " << textViewBufferIndex << std::endl;
 }
 
-void HexV::about()
+void
+HexV::about()
 {
   Gtk::AboutDialog aboutD;
   aboutD.set_authors( { "Josue Quilon Barrios" } );
@@ -218,14 +237,17 @@ void HexV::about()
   aboutD.set_program_name( "hexV" );
   aboutD.set_version( "0.1" );
   aboutD.set_license_type( Gtk::LICENSE_MIT_X11 );
-  aboutD.set_comments( "Small viewer that shows the content of a file in hexadecimal" );
+  aboutD.set_comments(
+    "Small viewer that shows the content of a file in hexadecimal" );
 
-  Glib::RefPtr<Gdk::Pixbuf> logo = Gdk::Pixbuf::create_from_file( "hv.png", 100, 100, true );
+  Glib::RefPtr<Gdk::Pixbuf> logo =
+    Gdk::Pixbuf::create_from_file( "hv.png", 100, 100, true );
   aboutD.set_logo( logo );
   aboutD.run();
 }
 
-void HexV::errorMessage( Glib::ustring text, Glib::ustring subtext )
+void
+HexV::errorMessage( Glib::ustring text, Glib::ustring subtext )
 {
   Gtk::MessageDialog dialog( *this, text );
   dialog.set_secondary_text( subtext );

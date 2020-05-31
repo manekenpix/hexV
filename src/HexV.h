@@ -2,36 +2,35 @@
 #define HEXVIEWER_H
 
 #include <cstdint>
-#include <gtkmm.h>
 #include <glibmm/ustring.h>
+#include <gtkmm.h>
 
 class HexV : public Gtk::Window
 {
   const size_t width = 475;
   const size_t height = 500;
   const uint32_t textViewWidth = 66;
-  const char * topText = " Position                  00 01 02 03 04 05 06 07 08 09";
-  char * buffer = nullptr;
+  char* buffer = nullptr;
   uint32_t bufferSize = 0;
 
   uint32_t textBufferSize = 0;
   Glib::ustring ustringBuffer;
 
   // Window
-  Gtk::HeaderBar * headerBar;
-  Gtk::MenuBar * menubar;
-  Gtk::MenuItem * filePlaceHolder;
-  Gtk::MenuItem * openPlaceHolder;
-  Gtk::MenuItem * closePlaceHolder;
-  Gtk::MenuItem * helpPlaceHolder;
-  Gtk::MenuItem * aboutPlaceHolder;
-  Gtk::Menu * fileMenu;
-  Gtk::Menu * helpMenu;
-  Gtk::Box * bigBox;
+  Gtk::HeaderBar* headerBar;
+  Gtk::MenuBar* menubar;
+  Gtk::MenuItem* filePlaceHolder;
+  Gtk::MenuItem* openPlaceHolder;
+  Gtk::MenuItem* closePlaceHolder;
+  Gtk::MenuItem* helpPlaceHolder;
+  Gtk::MenuItem* aboutPlaceHolder;
+  Gtk::Menu* fileMenu;
+  Gtk::Menu* helpMenu;
+  Gtk::Box* bigBox;
 
-  Gtk::Label * position;
-  Gtk::ScrolledWindow * scrolledWindow;
-  Gtk::TextView * textView;
+  Gtk::Label* position;
+  Gtk::ScrolledWindow* scrolledWindow;
+  Gtk::TextView* textView;
   Glib::RefPtr<Gtk::CssProvider> cssProvider;
   Glib::RefPtr<Gtk::StyleContext> styleContext;
   Glib::RefPtr<Gtk::TextBuffer> textBuffer;
@@ -41,7 +40,12 @@ class HexV : public Gtk::Window
 
   // Helper
   void openFile();
-  void openDroppedFile( const Glib::RefPtr<Gdk::DragContext> & context, int, int, const Gtk::SelectionData & selection_data, guint, guint time );
+  void openDroppedFile( const Glib::RefPtr<Gdk::DragContext>& context,
+                        int,
+                        int,
+                        const Gtk::SelectionData& selection_data,
+                        guint,
+                        guint time );
   void process();
   inline uint8_t byteToChar( char c )
   {
@@ -49,12 +53,9 @@ class HexV : public Gtk::Window
   };
   void about();
   void errorMessage( Glib::ustring text, Glib::ustring subtext );
-  void exit()
-  {
-    hide();
-  };
+  void exit() { hide(); };
 
-  public:
+public:
   HexV();
 };
 
