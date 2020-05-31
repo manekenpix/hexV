@@ -16,6 +16,12 @@ class HexV : public Gtk::Window
   uint32_t textBufferSize = 0;
   Glib::ustring ustringBuffer;
 
+  struct fileType
+  {
+    Glib::ustring name, path;
+    std::string raw;
+  } openedFile;
+
   // Window
   Gtk::HeaderBar* headerBar;
   Gtk::MenuBar* menubar;
@@ -39,6 +45,7 @@ class HexV : public Gtk::Window
   std::vector<Gtk::TargetEntry> listTargets;
 
   // Helper
+  void parseFilePath( std::string );
   void openFile();
   void openDroppedFile( const Glib::RefPtr<Gdk::DragContext>& context,
                         int,
@@ -52,7 +59,7 @@ class HexV : public Gtk::Window
     return ( c < 10 ? ( c += 48 ) : ( c += 55 ) );
   };
   void about();
-  void errorMessage( Glib::ustring text, Glib::ustring subtext );
+  void errorMessage( const Glib::ustring& text, const Glib::ustring& subtext );
   void exit() { hide(); };
 
 public:
