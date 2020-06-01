@@ -109,34 +109,33 @@ HexV::openFile()
   fileDialog.close();
 
   if ( response == Gtk::RESPONSE_OK ) {
-    std::cout << "Opening: " << fileDialog.get_filename() << std::endl;
-    std::fstream file;
-    file.open( fileDialog.get_filename(),
-               std::fstream::in | std::fstream::binary );
+    if ( Glib::ustring( fileDialog.get_filename() ) != openedFile.path ) {
 
-    if ( file.is_open() ) {
-      Glib::ustring fileName( fileDialog.get_filename() );
-      Glib::ustring::size_type lastSlash = fileName.find_last_of( "/" );
-      Glib::ustring::size_type size = fileName.size();
+      parseFilePath( Glib::ustring( fileDialog.get_filename() ) );
+      std::cout << "Opening: " << openedFile.path << std::endl;
+      std::fstream file;
+      file.open( openedFile.path, std::fstream::in | std::fstream::binary );
 
-      fileName = fileName.substr( lastSlash + 1, size - lastSlash );
-      headerBar->set_subtitle( fileName );
+      if ( file.is_open() ) {
+        headerBar->set_subtitle( openedFile.name );
 
-      file.seekg( 0, std::ios::end );
-      bufferSize = ( uint32_t )( file.tellg() );
-      file.seekg( 0, std::ios::beg );
+        file.seekg( 0, std::ios::end );
+        bufferSize = ( uint32_t )( file.tellg() );
+        file.seekg( 0, std::ios::beg );
 
-      if ( bufferSize ) {
-        buffer = new char[bufferSize];
-        file.read( ( buffer ), bufferSize );
-        process();
-        delete[] buffer;
+        if ( bufferSize ) {
+          buffer = new char[bufferSize];
+          file.read( ( buffer ), bufferSize );
+          process();
+          delete[] buffer;
+        }
+        file.close();
       }
-      file.close();
     } else
-      errorMessage( "Error Opening File",
-                    "There was a problem accessing the file" );
-  }
+      errorMessage( "Error Opening File", "File already open" );
+  } else
+    errorMessage( "Error Opening File",
+                  "There was a problem opening the file" );
 }
 
 void
@@ -149,47 +148,36 @@ HexV::openDroppedFile( const Glib::RefPtr<Gdk::DragContext>& context,
 {
   context->drag_finish( false, false, time );
 
-  const int length = selection_data.get_length();
-  const std::string encodedSpace( "%20" );
+  if ( ( selection_data.get_length() >= 0 ) &&
+       ( selection_data.get_format() == 8 ) ) {
 
-  if ( ( length >= 0 ) && ( selection_data.get_format() == 8 ) ) {
-    uint8_t offset = 7;
-    std::string path( selection_data.get_data_as_string().substr(
-      offset, selection_data.get_data_as_string().length() - offset - 2 ) );
+    if ( selection_data.get_data_as_string() != openedFile.raw ) {
 
-    if ( path.find( encodedSpace ) != std::string::npos )
-      path =
-        path.replace( path.find( encodedSpace ), encodedSpace.length(), " " );
+      parseFilePath( selection_data.get_data_as_string() );
 
-    std::cout << "Last char " << path[path.length() - 2] << std::endl;
-    Glib::ustring fileName( path );
+      std::cout << "Opening: " << openedFile.path << std::endl;
+      std::fstream file;
+      file.open( openedFile.path, std::fstream::in | std::fstream::binary );
 
-    std::cout << "Opening: " << fileName << std::endl;
-    std::fstream file;
-    file.open( fileName, std::fstream::in | std::fstream::binary );
+      if ( file.is_open() ) {
+        headerBar->set_subtitle( openedFile.name );
 
-    if ( file.is_open() ) {
-      Glib::ustring::size_type lastSlash = fileName.find_last_of( "/" );
-      Glib::ustring::size_type size = fileName.size();
+        file.seekg( 0, std::ios::end );
+        bufferSize = ( uint32_t )( file.tellg() );
+        file.seekg( 0, std::ios::beg );
 
-      fileName = fileName.substr( lastSlash + 1, size - lastSlash );
-      headerBar->set_subtitle( fileName );
-
-      file.seekg( 0, std::ios::end );
-      bufferSize = ( uint32_t )( file.tellg() );
-      file.seekg( 0, std::ios::beg );
-
-      if ( bufferSize ) {
-        buffer = new char[bufferSize];
-        file.read( ( buffer ), bufferSize );
-        process();
-        delete[] buffer;
+        if ( bufferSize ) {
+          buffer = new char[bufferSize];
+          file.read( ( buffer ), bufferSize );
+          process();
+          delete[] buffer;
+        }
+        file.close();
       }
-      file.close();
-    } else
-      errorMessage( "Error Opening File",
-                    "There was a problem accessing the file" );
-  }
+    }
+  } else
+    errorMessage( "Error Opening File",
+                  "There was a problem accessing the file" );
 }
 
 void
@@ -247,10 +235,33 @@ HexV::about()
 }
 
 void
-HexV::errorMessage( Glib::ustring text, Glib::ustring subtext )
+HexV::errorMessage( const Glib::ustring& text, const Glib::ustring& subtext )
 {
   Gtk::MessageDialog dialog( *this, text );
   dialog.set_secondary_text( subtext );
 
   dialog.run();
 }
+
+void
+HexV::parseFilePath( std::string bStr )
+{
+  const Glib::ustring encodedSpace( "%20" );
+  const Glib::ustring localPath( "file://" );
+
+  openedFile.raw = bStr;
+
+  if ( bStr.find( encodedSpace ) != std::string::npos )
+    bStr =
+      bStr.replace( bStr.find( encodedSpace ), encodedSpace.length(), " " );
+
+  if ( bStr.find( localPath ) != std::string::npos )
+    bStr =
+      bStr.substr( localPath.length(), bStr.length() - localPath.length() - 2 );
+
+  openedFile.path = Glib::ustring( bStr );
+
+  Glib::ustring::size_type lastSlash = openedFile.path.find_last_of( "/" );
+  openedFile.name =
+    openedFile.path.substr( lastSlash + 1, openedFile.path.size() - lastSlash );
+};
