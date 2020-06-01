@@ -210,6 +210,8 @@ HexV::process()
       textViewBufferIndex += 1;
     }
   }
+  line = ascii.append( 16 - ascii.length(), ' ' ) + " | " + hex;
+  ustringBuffer += line;
   textBuffer->set_text( ustringBuffer );
 
   std::cout << "textViewBufferIndex: " << textViewBufferIndex << std::endl;
