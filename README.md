@@ -1,7 +1,8 @@
 # hexV <img align="left" width="100" height="100" src=https://github.com/manekenpix/hexV/blob/master/src/hv.png>
+[![Build Status](https://travis-ci.com/manekenpix/hexV.svg?branch=master)](https://travis-ci.com/manekenpix/hexV)  
 
-File viewer that displays file content in hexadecimal format
-
+## What is hexV?
+File viewer that displays file content in hexadecimal format  
 
 ## Installation
 
@@ -18,7 +19,7 @@ Run:
 
 ## Upcoming features
 
+ - File type detection
  - Content edition
  - Content grouping by data type
- - More Languages
-.
+ 
