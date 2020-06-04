@@ -4,6 +4,8 @@
 ## What is hexV?
 File viewer that displays file content in hexadecimal format  
 
+![](https://github.com/manekenpix/hexV/blob/master/images/hexV.png)
+
 ## Installation
 
 Download or clone the project and compile:
