@@ -1,5 +1,5 @@
-#ifndef HEXVIEWER_H
-#define HEXVIEWER_H
+#ifndef HEXV_H
+#define HEXV_H
 
 #include <cstdint>
 #include <glibmm/ustring.h>
