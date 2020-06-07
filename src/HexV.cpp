@@ -112,25 +112,7 @@ HexV::openFile()
     if ( Glib::ustring( fileDialog.get_filename() ) != openedFile.path ) {
 
       parseFilePath( Glib::ustring( fileDialog.get_filename() ) );
-      std::cout << "Opening: " << openedFile.path << std::endl;
-      std::fstream file;
-      file.open( openedFile.path, std::fstream::in | std::fstream::binary );
-
-      if ( file.is_open() ) {
-        headerBar->set_subtitle( openedFile.name );
-
-        file.seekg( 0, std::ios::end );
-        bufferSize = ( uint32_t )( file.tellg() );
-        file.seekg( 0, std::ios::beg );
-
-        if ( bufferSize ) {
-          buffer = new char[bufferSize];
-          file.read( ( buffer ), bufferSize );
-          process();
-          delete[] buffer;
-        }
-        file.close();
-      }
+      process();
     } else
       errorMessage( "Error Opening File", "File already open" );
   } else
@@ -154,26 +136,7 @@ HexV::openDroppedFile( const Glib::RefPtr<Gdk::DragContext>& context,
     if ( selection_data.get_data_as_string() != openedFile.raw ) {
 
       parseFilePath( selection_data.get_data_as_string() );
-
-      std::cout << "Opening: " << openedFile.path << std::endl;
-      std::fstream file;
-      file.open( openedFile.path, std::fstream::in | std::fstream::binary );
-
-      if ( file.is_open() ) {
-        headerBar->set_subtitle( openedFile.name );
-
-        file.seekg( 0, std::ios::end );
-        bufferSize = ( uint32_t )( file.tellg() );
-        file.seekg( 0, std::ios::beg );
-
-        if ( bufferSize ) {
-          buffer = new char[bufferSize];
-          file.read( ( buffer ), bufferSize );
-          process();
-          delete[] buffer;
-        }
-        file.close();
-      }
+      process();
     }
   } else
     errorMessage( "Error Opening File",
@@ -188,33 +151,52 @@ HexV::process()
   Glib::ustring ascii, hex, line;
   ustringBuffer = "";
 
-  for ( uint32_t i = 0; i < bufferSize; ++i ) {
-    high = byteToChar( ( buffer[i] >> 4 ) & 0x0F );
-    low = byteToChar( buffer[i] & 0x0F );
+  std::cout << "Opening: " << openedFile.path << std::endl;
+  std::fstream file;
+  file.open( openedFile.path, std::fstream::in | std::fstream::binary );
 
-    ascii += buffer[i] > 33 && buffer[i] < 127 ? Glib::ustring( 1, buffer[i] )
-                                               : Glib::ustring( 1, '.' );
-    textViewBufferIndex += 1;
+  if ( file.is_open() ) {
+    headerBar->set_subtitle( openedFile.name );
 
-    hex += Glib::ustring( 1, high );
-    hex += Glib::ustring( 1, low );
-    textViewBufferIndex += 2;
+    file.seekg( 0, std::ios::end );
+    bufferSize = ( uint32_t )( file.tellg() );
+    file.seekg( 0, std::ios::beg );
 
-    if ( textViewBufferIndex % textViewWidth == 0 ) {
-      line = ascii + " | " + hex + Glib::ustring( 1, '\n' );
+    if ( bufferSize ) {
+      buffer = new char[bufferSize];
+      file.read( ( buffer ), bufferSize );
+      for ( uint32_t i = 0; i < bufferSize; ++i ) {
+        high = byteToChar( ( buffer[i] >> 4 ) & 0x0F );
+        low = byteToChar( buffer[i] & 0x0F );
+
+        ascii += buffer[i] > 33 && buffer[i] < 127
+                   ? Glib::ustring( 1, buffer[i] )
+                   : Glib::ustring( 1, '.' );
+        textViewBufferIndex += 1;
+
+        hex += Glib::ustring( 1, high );
+        hex += Glib::ustring( 1, low );
+        textViewBufferIndex += 2;
+
+        if ( textViewBufferIndex % textViewWidth == 0 ) {
+          line = ascii + " | " + hex + Glib::ustring( 1, '\n' );
+          ustringBuffer += line;
+          line = hex = ascii = "";
+          textViewBufferIndex += 3;
+        } else {
+          hex += Glib::ustring( 1, ' ' );
+          textViewBufferIndex += 1;
+        }
+      }
+      line = ascii.append( 16 - ascii.length(), ' ' ) + " | " + hex;
       ustringBuffer += line;
-      line = hex = ascii = "";
-      textViewBufferIndex += 3;
-    } else {
-      hex += Glib::ustring( 1, ' ' );
-      textViewBufferIndex += 1;
-    }
-  }
-  line = ascii.append( 16 - ascii.length(), ' ' ) + " | " + hex;
-  ustringBuffer += line;
-  textBuffer->set_text( ustringBuffer );
+      textBuffer->set_text( ustringBuffer );
 
-  std::cout << "textViewBufferIndex: " << textViewBufferIndex << std::endl;
+      std::cout << "textViewBufferIndex: " << textViewBufferIndex << std::endl;
+      delete[] buffer;
+    }
+    file.close();
+  }
 }
 
 void
