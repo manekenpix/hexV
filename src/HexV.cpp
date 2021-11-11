@@ -1,6 +1,4 @@
-#include "HexV.h"
-#include <fstream>
-#include <iostream>
+#include "include/HexV.h"
 
 HexV::HexV()
 {
@@ -11,10 +9,10 @@ HexV::HexV()
   set_resizable( false );
 
   std::fstream iconFile;
-  iconFile.open( "hv.png", std::fstream::in );
+  iconFile.open( "images/hv.png", std::fstream::in );
   if ( iconFile.is_open() ) {
     iconFile.close();
-    set_icon_from_file( "hv.png" );
+    set_icon_from_file( "images/hv.png" );
   }
 
   // Header bar
@@ -159,7 +157,7 @@ HexV::process()
     headerBar->set_subtitle( openedFile.name );
 
     file.seekg( 0, std::ios::end );
-    bufferSize = ( uint32_t )( file.tellg() );
+    bufferSize = (uint32_t)( file.tellg() );
     file.seekg( 0, std::ios::beg );
 
     if ( bufferSize ) {
@@ -205,7 +203,7 @@ HexV::about()
   Gtk::AboutDialog aboutD;
   aboutD.set_authors( { "Josue Quilon Barrios" } );
   aboutD.set_website( "https://github.com/manekenpix" );
-  aboutD.set_icon_from_file( "hv.png" );
+  aboutD.set_icon_from_file( "images/hv.png" );
   aboutD.set_program_name( "hexV" );
   aboutD.set_version( "0.1" );
   aboutD.set_license_type( Gtk::LICENSE_MIT_X11 );
@@ -213,7 +211,7 @@ HexV::about()
     "Small viewer that shows the content of a file in hexadecimal" );
 
   Glib::RefPtr<Gdk::Pixbuf> logo =
-    Gdk::Pixbuf::create_from_file( "hv.png", 100, 100, true );
+    Gdk::Pixbuf::create_from_file( "images/hv.png", 100, 100, true );
   aboutD.set_logo( logo );
   aboutD.run();
 }

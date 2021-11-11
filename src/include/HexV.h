@@ -2,8 +2,10 @@
 #define HEXV_H
 
 #include <cstdint>
+#include <fstream>
 #include <glibmm/ustring.h>
 #include <gtkmm.h>
+#include <iostream>
 
 class HexV : public Gtk::Window
 {
