@@ -1,4 +1,4 @@
-# hexV <img align="left" width="100" height="100" src=https://github.com/manekenpix/hexV/blob/master/src/hv.png>
+# hexV <img align="left" width="100" height="100" src=https://github.com/manekenpix/hexV/blob/master/images/hv.png>
 [![Build Status](https://travis-ci.com/manekenpix/hexV.svg?branch=master)](https://travis-ci.com/manekenpix/hexV)  
 
 ## What is hexV?
