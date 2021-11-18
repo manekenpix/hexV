@@ -5,10 +5,10 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "(gdb) Launch",
+      "name": "hexV",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/src/hexV",
+      "program": "${workspaceFolder}/hexV",
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
