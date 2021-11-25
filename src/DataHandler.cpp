@@ -83,6 +83,15 @@ DataHandler::createView()
   return &fullPanel;
 };
 
+std::string::size_type
+DataHandler::findInstances( const Glib::ustring search ) const
+{
+  if ( !textPanel || search.length() == 0 )
+    return std::string::npos;
+
+  return fullPanel.find( search );
+};
+
 DataHandler::~DataHandler()
 {
   delete raw;

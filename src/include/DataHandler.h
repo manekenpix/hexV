@@ -44,6 +44,7 @@ public:
 
   void loadFile( Glib::ustring );
   Glib::ustring* createView();
+  std::string::size_type findInstances( const Glib::ustring str ) const;
 };
 
 #endif
