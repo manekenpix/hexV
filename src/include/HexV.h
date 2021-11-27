@@ -10,8 +10,8 @@
 
 class HexV : public Gtk::Window
 {
-  const size_t width = 475;
-  const size_t height = 500;
+  static const size_t width = 475;
+  static const size_t height = 700;
 
   DataHandler dataHandler;
 
@@ -19,7 +19,7 @@ class HexV : public Gtk::Window
   {
     Glib::ustring name, path;
     std::string raw;
-  } openedFile;
+  } file;
 
   // Window
   Gtk::HeaderBar* headerBar;
@@ -29,12 +29,12 @@ class HexV : public Gtk::Window
   Gtk::MenuItem* closePlaceHolder;
   Gtk::MenuItem* searchPlaceHolder;
   Gtk::MenuItem* textPlaceHolder;
-  Gtk::MenuItem* hexPlaceHolder;
   Gtk::MenuItem* helpPlaceHolder;
   Gtk::MenuItem* aboutPlaceHolder;
   Gtk::Menu* fileMenu;
   Gtk::Menu* searchMenu;
   Gtk::Menu* helpMenu;
+  Gtk::Grid* grid;
   Gtk::Box* bigBox;
   Gtk::Box* searchBox;
 
@@ -43,9 +43,11 @@ class HexV : public Gtk::Window
 
   Gtk::ScrolledWindow* scrolledWindow;
   Gtk::TextView* textView;
+  Gtk::TextView* hexView;
   Glib::RefPtr<Gtk::CssProvider> cssProvider;
   Glib::RefPtr<Gtk::StyleContext> styleContext;
   Glib::RefPtr<Gtk::TextBuffer> textBuffer;
+  Glib::RefPtr<Gtk::TextBuffer> hexBuffer;
 
   // Targets:
   std::vector<Gtk::TargetEntry> listTargets;
@@ -53,7 +55,7 @@ class HexV : public Gtk::Window
   // Helper
   void parseFilePath( std::string );
   void displaySearchBox();
-  void searchEvent();
+  void search();
   void disableSearch();
   void openFile();
   void openDroppedFile( const Glib::RefPtr<Gdk::DragContext>& context,
@@ -64,6 +66,7 @@ class HexV : public Gtk::Window
                         guint time );
   void setupWindow();
   void setupMenu();
+  void setupPanels();
   void connectEvents();
   void about();
   void displayErrorMessage( const Glib::ustring& text,
