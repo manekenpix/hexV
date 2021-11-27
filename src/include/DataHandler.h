@@ -2,7 +2,6 @@
 #define DATA_HANDLER_H
 
 #include "types.h"
-#include <algorithm>
 #include <array>
 #include <fstream>
 #include <glibmm/ustring.h>
@@ -10,26 +9,13 @@
 
 class DataHandler
 {
-  const u8 panelStride = 16;
-  const u8 spaces = 16;
+  static const u8 panelStride = 16;
+  static const u8 hexPanelStride = 48;
 
-  const Glib::ustring separator = " |";
   const Glib::ustring newLine = "\n";
 
-  const u8 hexPanelStride =
-    ( panelStride * 2 ) + spaces + separator.size() + newLine.size();
-  const u8 stride = panelStride + hexPanelStride;
-
-  struct HexByte
-  {
-    Glib::ustring high;
-    Glib::ustring low;
-  };
-
-  std::vector<Glib::ustring>* textPanel = nullptr;
-  std::vector<HexByte>* hexPanel = nullptr;
   std::vector<char>* raw = nullptr;
-  Glib::ustring fullPanel, fileName;
+  Glib::ustring fileName, textPanel, hexPanel;
 
   u32 fileSize = 0;
 
@@ -43,8 +29,10 @@ public:
   ~DataHandler();
 
   void loadFile( Glib::ustring );
-  Glib::ustring* createView();
-  std::string::size_type findInstances( const Glib::ustring str ) const;
+  void createView();
+  Glib::ustring* getTextBuffer();
+  Glib::ustring* getHexBuffer();
+  std::string::size_type search( const Glib::ustring str ) const;
 };
 
 #endif
