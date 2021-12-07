@@ -21,54 +21,111 @@ DataHandler::loadFile( Glib::ustring fn )
                  std::istreambuf_iterator<char>( file ),
                  std::istreambuf_iterator<char>() );
 
-    createView();
+    processFile();
   }
 };
 
 void
-DataHandler::createView()
+DataHandler::processFile()
 {
-  const u32 numberOfPasses = ( fileSize / panelStride );
-  const u8 lastElements = ( fileSize % panelStride );
+  const u32 totalNumberOfPasses = fileSize / panelStride;
+  u8 lastElements = fileSize % panelStride;
 
   textPanel.clear();
   hexPanel.clear();
 
-  textPanel.reserve( fileSize + numberOfPasses );
-  hexPanel.reserve( ( hexPanelStride * numberOfPasses ) + hexPanelStride );
+  textPanel.reserve( fileSize + totalNumberOfPasses );
+  hexPanel.reserve( ( hexPanelStride * totalNumberOfPasses ) + hexPanelStride );
 
-  u32 pass, line;
-  for ( pass = 0; pass < numberOfPasses; ++pass ) {
+  auto processChunk = [&]( Glib::ustring& textBuffer,
+                           Glib::ustring& hexBuffer,
+                           std::vector<char>::iterator fileIterator,
+                           u32 passes,
+                           u8 stride = panelStride ) {
+    for ( u32 pass = 0; pass < passes; ++pass ) {
 
-    line = pass * panelStride;
-    for ( u32 textIt = 0; textIt < panelStride; ++textIt ) {
+      for ( u32 i = 0; i < stride; ++i ) {
+        textBuffer += *fileIterator >= '!' && *fileIterator <= '~'
+                        ? Glib::ustring( 1, *fileIterator )
+                        : Glib::ustring( 1, '.' );
 
-      textPanel +=
-        raw->at( line + textIt ) > 33 && raw->at( line + textIt ) < 127
-          ? Glib::ustring( 1, raw->at( line + textIt ) )
-          : Glib::ustring( 1, '.' );
+        hexBuffer += hexValues[( *fileIterator >> 4 ) & 0x0F];
+        hexBuffer += hexValues[( *fileIterator & 0x0F )];
+        if ( i != panelStride - 1 )
+          hexBuffer += ' ';
 
-      hexPanel += hexValues[( raw->at( line + textIt ) >> 4 ) & 0x0F];
-      hexPanel += hexValues[( raw->at( line + textIt ) & 0x0F )];
-      if ( textIt != panelStride - 1 )
-        hexPanel += ' ';
+        ++fileIterator;
+      }
+
+      textBuffer += newLine;
+      hexBuffer += newLine;
+    }
+  };
+
+  // Multi thread
+  if ( fileSize > bytesToProcessPerThread ) {
+
+    const u8 numberOfThreads = std::thread::hardware_concurrency() + 1;
+
+    u32 chunkSize = fileSize / numberOfThreads;
+    chunkSize = chunkSize - ( chunkSize % panelStride );
+    const u32 numberOfPassesPerChunk = chunkSize / panelStride;
+
+    std::vector<std::thread> pool;
+    std::vector<Glib::ustring> textBuffers( numberOfThreads, Glib::ustring() );
+    std::vector<Glib::ustring> hexBuffers( numberOfThreads, Glib::ustring() );
+
+    for ( u8 t = 0; t < numberOfThreads; ++t ) {
+      textBuffers[t].reserve( chunkSize + numberOfPassesPerChunk );
+      hexBuffers[t].reserve( ( hexPanelStride * numberOfPassesPerChunk ) +
+                             hexPanelStride );
+      pool.push_back( std::thread( processChunk,
+                                   std::ref( textBuffers[t] ),
+                                   std::ref( hexBuffers[t] ),
+                                   raw->begin() + ( chunkSize * t ),
+                                   numberOfPassesPerChunk ) );
     }
 
-    textPanel += newLine;
-    hexPanel += newLine;
+    for ( auto& it : pool )
+      it.join();
+
+    for ( auto itT = textBuffers.cbegin(), itH = hexBuffers.cbegin();
+          itT < textBuffers.end();
+          ++itT, ++itH ) {
+      textPanel += *itT;
+      hexPanel += *itH;
+    }
+
+    // Last chunk
+    lastElements = fileSize - ( chunkSize * numberOfThreads );
+
+    if ( lastElements > panelStride ) {
+      u32 lastPasses = lastElements / panelStride;
+
+      std::vector<char>::iterator fileIterator = raw->end() - lastElements;
+      processChunk( textPanel, hexPanel, fileIterator, lastPasses );
+    }
+
+    lastElements = fileSize % panelStride;
+
+  } else {
+    // Single thread
+    processChunk( textPanel, hexPanel, raw->begin(), totalNumberOfPasses );
   }
 
   // Last pass
-  line += panelStride;
-  for ( u32 textIt = 0; textIt < lastElements; ++textIt ) {
-
-    textPanel += raw->at( line + textIt ) > 33 && raw->at( line + textIt ) < 127
-                   ? Glib::ustring( 1, raw->at( line + textIt ) )
+  std::vector<char>::iterator fileIterator = raw->end() - lastElements;
+  for ( u32 i = 0; i < lastElements; ++i ) {
+    textPanel += *fileIterator >= '!' && *fileIterator <= '~'
+                   ? Glib::ustring( 1, *fileIterator )
                    : Glib::ustring( 1, '.' );
+    ;
 
-    hexPanel += hexValues[( raw->at( line + textIt ) >> 4 ) & 0x0F];
-    hexPanel += hexValues[( raw->at( line + textIt ) & 0x0F )];
+    hexPanel += hexValues[( *fileIterator >> 4 ) & 0x0F];
+    hexPanel += hexValues[( *fileIterator & 0x0F )];
     hexPanel += ' ';
+
+    ++fileIterator;
   }
 };
 
@@ -87,10 +144,9 @@ DataHandler::getHexBuffer()
 std::string::size_type
 DataHandler::search( const Glib::ustring search ) const
 {
-  if ( textPanel.length() == 0 || search.length() == 0 )
-    return std::string::npos;
-
-  return textPanel.find( search );
+  return ( textPanel.length() == 0 || search.length() == 0 )
+           ? std::string::npos
+           : textPanel.find( search );
 };
 
 DataHandler::~DataHandler()

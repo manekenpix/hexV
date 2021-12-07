@@ -65,9 +65,10 @@ class HexV : public Gtk::Window
                         guint,
                         guint time );
   void setupWindow();
+  void setupContainers();
   void setupMenu();
   void setupPanels();
-  void connectEvents();
+  void setupEvents();
   void about();
   void displayErrorMessage( const Glib::ustring& text,
                             const Glib::ustring& subtext );

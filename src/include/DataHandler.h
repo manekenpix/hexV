@@ -3,8 +3,10 @@
 
 #include "types.h"
 #include <array>
+#include <chrono>
 #include <fstream>
 #include <glibmm/ustring.h>
+#include <thread>
 #include <vector>
 
 class DataHandler
@@ -14,6 +16,7 @@ class DataHandler
 
   const Glib::ustring newLine = "\n";
 
+  const u32 bytesToProcessPerThread = 2000000;
   std::vector<char>* raw = nullptr;
   Glib::ustring fileName, textPanel, hexPanel;
 
@@ -24,12 +27,13 @@ class DataHandler
                                                     "8", "9", "A", "B",
                                                     "C", "D", "E", "F" };
 
+  void processFile();
+
 public:
   DataHandler(){};
   ~DataHandler();
 
   void loadFile( Glib::ustring );
-  void createView();
   Glib::ustring* getTextBuffer();
   Glib::ustring* getHexBuffer();
   std::string::size_type search( const Glib::ustring str ) const;
