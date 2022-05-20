@@ -10,8 +10,10 @@
 
 class HexV : public Gtk::Window
 {
-  static const size_t width = 475;
-  static const size_t height = 700;
+  const size_t width = 475;
+  const size_t height = 700;
+  const u8 chars_per_line = 17;
+  const u32 pixels_per_line = 16;
 
   DataHandler dataHandler;
 

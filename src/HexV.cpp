@@ -19,7 +19,6 @@ void
 HexV::setupWindow()
 {
   set_default_size( width, height );
-  set_resizable( false );
   set_position( Gtk::WIN_POS_CENTER_ALWAYS );
   set_resizable( false );
 
@@ -170,7 +169,7 @@ HexV::openFile()
   fileDialog.add_button( Glib::ustring( "_Open" ), Gtk::RESPONSE_OK );
   fileDialog.add_button( Glib::ustring( "_Cancel" ), Gtk::RESPONSE_CANCEL );
 
-  int response = fileDialog.run();
+  s32 response = fileDialog.run();
   fileDialog.hide();
 
   if ( response == Gtk::RESPONSE_OK ) {
@@ -193,8 +192,8 @@ HexV::openFile()
 
 void
 HexV::openDroppedFile( const Glib::RefPtr<Gdk::DragContext>& context,
-                       int,
-                       int,
+                       s32,
+                       s32,
                        const Gtk::SelectionData& selection_data,
                        guint,
                        guint time )
@@ -229,19 +228,22 @@ HexV::search()
 {
   const Glib::ustring searchedText = searchBuffer->get_text();
   std::string::size_type position = dataHandler.search( searchedText );
+  Glib::RefPtr<Gtk::Adjustment> adj = scrolledWindow->get_vadjustment();
 
   if ( position != std::string::npos ) {
-    Gtk::TextIter temp =
-      textBuffer->get_iter_at_offset( static_cast<int>( position ) );
-    Gtk::TextIter it = temp, anotherIt = temp;
+    Gtk::TextIter rangeStart =
+      textBuffer->get_iter_at_offset( static_cast<s32>( position ) );
+    Gtk::TextIter rangeEnd = textBuffer->get_iter_at_offset(
+      static_cast<s32>( position + searchedText.length() ) );
 
-    for ( u32 i = 0; i < searchedText.length(); ++i )
-      ++anotherIt;
+    textBuffer->select_range( rangeStart, rangeEnd );
 
-    textBuffer->select_range( static_cast<const Gtk::TextIter>( it ),
-                              static_cast<const Gtk::TextIter>( anotherIt ) );
+    f32 positionInPanel =
+      static_cast<u32>( position / chars_per_line ) * pixels_per_line;
+    adj->set_value( positionInPanel );
   } else {
     textBuffer->select_range( textBuffer->begin(), textBuffer->begin() );
+    adj->set_value( 0.0 );
   }
 };
 
@@ -249,11 +251,8 @@ void
 HexV::disableSearch()
 {
   searchBox->hide();
-  // theres probably a better way to do this
   if ( textBuffer ) {
-    textBuffer->select_range(
-      static_cast<const Gtk::TextIter>( textBuffer->begin() ),
-      static_cast<const Gtk::TextIter>( textBuffer->begin() ) );
+    textBuffer->select_range( textBuffer->begin(), textBuffer->begin() );
   }
 };
 
