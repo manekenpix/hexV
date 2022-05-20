@@ -1,10 +1,15 @@
 # hexV <img align="left" width="100" height="100" src=https://github.com/manekenpix/hexV/blob/master/images/hv.png>
-[![Build Status](https://travis-ci.com/manekenpix/hexV.svg?branch=master)](https://travis-ci.com/manekenpix/hexV)  
+
+![Format Check](https://github.com/manekenpix/hexV/actions/workflows/clang-format-check.yml/badge.svg)
 
 ## What is hexV?
-File viewer that displays file content in hexadecimal format  
+File viewer that displays file content in hexadecimal format  .
 
 ![](https://github.com/manekenpix/hexV/blob/master/images/hexV.png)
+
+Readable content can be searched.
+
+![](https://github.com/manekenpix/hexV/blob/master/images/hexV_search.png)
 
 ## Installation
 
@@ -18,10 +23,3 @@ Run:
 ```sh
 ./hexV
 ```
-
-## Upcoming features
-
- - File type detection
- - Content edition
- - Content grouping by data type
- 
