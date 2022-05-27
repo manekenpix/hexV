@@ -119,7 +119,6 @@ DataHandler::processFile()
     textPanel += *fileIterator >= '!' && *fileIterator <= '~'
                    ? Glib::ustring( 1, *fileIterator )
                    : Glib::ustring( 1, '.' );
-    ;
 
     hexPanel += hexValues[( *fileIterator >> 4 ) & 0x0F];
     hexPanel += hexValues[( *fileIterator & 0x0F )];
@@ -142,11 +141,12 @@ DataHandler::getHexBuffer()
 };
 
 std::string::size_type
-DataHandler::search( const Glib::ustring search ) const
+DataHandler::search( const Glib::ustring& str,
+                     const std::string::size_type pos ) const
 {
-  return ( textPanel.length() == 0 || search.length() == 0 )
+  return ( textPanel.length() == 0 || str.length() == 0 )
            ? std::string::npos
-           : textPanel.find( search );
+           : textPanel.find( str, pos );
 };
 
 DataHandler::~DataHandler()

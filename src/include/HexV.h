@@ -17,11 +17,13 @@ class HexV : public Gtk::Window
 
   DataHandler dataHandler;
 
-  struct fileType
+  typedef struct FileType
   {
     Glib::ustring name, path;
     std::string raw;
-  } file;
+  } FileType;
+
+  FileType file;
 
   // Window
   Gtk::HeaderBar* headerBar;
@@ -29,20 +31,44 @@ class HexV : public Gtk::Window
   Gtk::MenuItem* filePlaceHolder;
   Gtk::MenuItem* openPlaceHolder;
   Gtk::MenuItem* closePlaceHolder;
-  Gtk::MenuItem* searchPlaceHolder;
+  Gtk::MenuItem* optionsPlaceHolder;
   Gtk::MenuItem* textPlaceHolder;
+  Gtk::MenuItem* nextSearchPlaceHolder;
+  Gtk::MenuItem* previousSearchPlaceHolder;
+  Gtk::MenuItem* searchPlaceHolder;
   Gtk::MenuItem* helpPlaceHolder;
   Gtk::MenuItem* aboutPlaceHolder;
   Gtk::Menu* fileMenu;
+  Gtk::Menu* optionsMenu;
   Gtk::Menu* searchMenu;
   Gtk::Menu* helpMenu;
   Gtk::Grid* grid;
   Gtk::Box* bigBox;
   Gtk::Box* searchBox;
 
+  // Search
+  Gtk::Button* next;
+  Gtk::Image* nextIcon;
+  Gtk::Button* previous;
+  Gtk::Image* previousIcon;
   Gtk::SearchEntry* searchEntry;
+  std::string::size_type position;
   Glib::RefPtr<Gtk::EntryBuffer> searchBuffer;
+  s8 searchHistoryIndex;
 
+  typedef struct SearchHistoryType
+  {
+    std::string::size_type pos;
+    f32 posInPanel;
+
+    SearchHistoryType( std::string::size_type _pos, f32 _posInPanel )
+      : pos{ _pos }
+      , posInPanel{ _posInPanel } {};
+  } SearchHistoryType;
+
+  std::vector<SearchHistoryType> searchHistory;
+
+  // Panels
   Gtk::ScrolledWindow* scrolledWindow;
   Gtk::TextView* textView;
   Gtk::TextView* hexView;
@@ -58,7 +84,12 @@ class HexV : public Gtk::Window
   void parseFilePath( std::string );
   void displaySearchBox();
   void search();
+  void searchNext();
+  void searchPrevious();
   void disableSearch();
+  void resetSearch();
+  void highlightText( const Glib::ustring& text,
+                      const f32 positionInPanel = 0.0 );
   void openFile();
   void openDroppedFile( const Glib::RefPtr<Gdk::DragContext>& context,
                         int,
@@ -68,6 +99,7 @@ class HexV : public Gtk::Window
                         guint time );
   void setupWindow();
   void setupContainers();
+  void setupSearchBox();
   void setupMenu();
   void setupPanels();
   void setupEvents();

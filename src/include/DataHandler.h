@@ -36,7 +36,9 @@ public:
   void loadFile( Glib::ustring );
   Glib::ustring* getTextBuffer();
   Glib::ustring* getHexBuffer();
-  std::string::size_type search( const Glib::ustring str ) const;
+  std::string::size_type search(
+    const Glib::ustring& str,
+    const std::string::size_type position = 0 ) const;
 };
 
 #endif
