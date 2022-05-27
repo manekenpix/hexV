@@ -8,6 +8,8 @@ HexV::HexV()
 
   setupPanels();
 
+  setupSearchBox();
+
   setupEvents();
 
   setupContainers();
@@ -32,11 +34,32 @@ HexV::setupWindow()
 };
 
 void
+HexV::setupSearchBox()
+{
+  searchEntry = Gtk::manage( new Gtk::SearchEntry() );
+  searchBuffer = Gtk::EntryBuffer::create();
+  searchEntry->set_buffer( searchBuffer );
+
+  next = Gtk::manage( new Gtk::Button() );
+  previous = Gtk::manage( new Gtk::Button() );
+
+  nextIcon = Gtk::manage( new Gtk::Image(
+    Gdk::Pixbuf::create_from_file( "images/arrow-down.svg", 24, 24, true ) ) );
+  next->set_image( *nextIcon );
+
+  previousIcon = Gtk::manage( new Gtk::Image(
+    Gdk::Pixbuf::create_from_file( "images/arrow-up.svg", 24, 24, true ) ) );
+  previous->set_image( *previousIcon );
+
+  searchBox = Gtk::manage( new Gtk::Box( Gtk::ORIENTATION_HORIZONTAL, 0 ) );
+  searchBox->pack_start( *searchEntry, true, true, 5 );
+  searchBox->pack_start( *next, false, false, 5 );
+  searchBox->pack_start( *previous, false, false, 5 );
+};
+
+void
 HexV::setupContainers()
 {
-  searchBox = Gtk::manage( new Gtk::Box( Gtk::ORIENTATION_VERTICAL, 0 ) );
-  searchBox->pack_start( *searchEntry, true, true, 0 );
-
   bigBox = Gtk::manage( new Gtk::Box( Gtk::ORIENTATION_VERTICAL, 0 ) );
   bigBox->pack_start( *menubar, Gtk::PACK_SHRINK, 0 );
   bigBox->pack_start( *searchBox, false, false, 0 );
@@ -61,12 +84,17 @@ HexV::setupMenu()
   filePlaceHolder = Gtk::manage( new Gtk::MenuItem( "_File", true ) );
   openPlaceHolder = Gtk::manage( new Gtk::MenuItem( "_Open", true ) );
   closePlaceHolder = Gtk::manage( new Gtk::MenuItem( "_Close", true ) );
-  searchPlaceHolder = Gtk::manage( new Gtk::MenuItem( "_Search", true ) );
+  optionsPlaceHolder = Gtk::manage( new Gtk::MenuItem( "_Options", true ) );
+  nextSearchPlaceHolder = Gtk::manage( new Gtk::MenuItem( "_Next", true ) );
   textPlaceHolder = Gtk::manage( new Gtk::MenuItem( "_Text", true ) );
+  previousSearchPlaceHolder =
+    Gtk::manage( new Gtk::MenuItem( "_Previous", true ) );
+  searchPlaceHolder = Gtk::manage( new Gtk::MenuItem( "_Search", true ) );
   helpPlaceHolder = Gtk::manage( new Gtk::MenuItem( "_Help", true ) );
   aboutPlaceHolder = Gtk::manage( new Gtk::MenuItem( "_About", true ) );
 
   fileMenu = Gtk::manage( new Gtk::Menu() );
+  optionsMenu = Gtk::manage( new Gtk::Menu() );
   searchMenu = Gtk::manage( new Gtk::Menu() );
   helpMenu = Gtk::manage( new Gtk::Menu() );
 
@@ -75,17 +103,17 @@ HexV::setupMenu()
   fileMenu->append( *openPlaceHolder );
   fileMenu->append( *closePlaceHolder );
 
-  menubar->append( *searchPlaceHolder );
+  menubar->append( *optionsPlaceHolder );
+  optionsPlaceHolder->set_submenu( *optionsMenu );
+  optionsMenu->append( *searchPlaceHolder );
   searchPlaceHolder->set_submenu( *searchMenu );
   searchMenu->append( *textPlaceHolder );
+  searchMenu->append( *nextSearchPlaceHolder );
+  searchMenu->append( *previousSearchPlaceHolder );
 
   menubar->append( *helpPlaceHolder );
   helpPlaceHolder->set_submenu( *helpMenu );
   helpMenu->append( *aboutPlaceHolder );
-
-  searchEntry = Gtk::manage( new Gtk::SearchEntry() );
-  searchBuffer = Gtk::EntryBuffer::create();
-  searchEntry->set_buffer( searchBuffer );
 };
 
 void
@@ -159,6 +187,10 @@ HexV::setupEvents()
     sigc::mem_fun( *this, &HexV::search ) );
   searchEntry->signal_stop_search().connect(
     sigc::mem_fun( *this, &HexV::disableSearch ) );
+
+  next->signal_clicked().connect( sigc::mem_fun( *this, &HexV::searchNext ) );
+  previous->signal_clicked().connect(
+    sigc::mem_fun( *this, &HexV::searchPrevious ) );
 };
 
 void
@@ -185,6 +217,7 @@ HexV::openFile()
       textBuffer->set_text( *( dataHandler.getTextBuffer() ) );
       hexBuffer->set_text( *( dataHandler.getHexBuffer() ) );
 
+      resetSearch();
     } else
       displayErrorMessage( "Error Opening File", "File already open" );
   }
@@ -224,27 +257,90 @@ HexV::displaySearchBox()
 };
 
 void
+HexV::resetSearch()
+{
+  position = 0;
+  searchHistoryIndex = -1;
+  searchHistory.clear();
+}
+
+void
 HexV::search()
 {
   const Glib::ustring searchedText = searchBuffer->get_text();
-  std::string::size_type position = dataHandler.search( searchedText );
+  position = dataHandler.search( searchedText, position );
   Glib::RefPtr<Gtk::Adjustment> adj = scrolledWindow->get_vadjustment();
 
   if ( position != std::string::npos ) {
-    Gtk::TextIter rangeStart =
-      textBuffer->get_iter_at_offset( static_cast<s32>( position ) );
-    Gtk::TextIter rangeEnd = textBuffer->get_iter_at_offset(
-      static_cast<s32>( position + searchedText.length() ) );
-
-    textBuffer->select_range( rangeStart, rangeEnd );
-
-    f32 positionInPanel =
+    const f32 posInPanel =
       static_cast<u32>( position / chars_per_line ) * pixels_per_line;
-    adj->set_value( positionInPanel );
+    searchHistory.clear();
+    searchHistory.push_back( { position, posInPanel } );
+    searchHistoryIndex = 0;
+
+    highlightText( searchedText, posInPanel );
   } else {
+    resetSearch();
+
     textBuffer->select_range( textBuffer->begin(), textBuffer->begin() );
     adj->set_value( 0.0 );
   }
+};
+
+void
+HexV::searchNext()
+{
+  const Glib::ustring searchedText = searchBuffer->get_text();
+
+  if ( searchedText.length() > 0 ) {
+
+    if ( searchHistoryIndex < searchHistory.size() - 1 ) {
+      ++searchHistoryIndex;
+      position = searchHistory[searchHistoryIndex].pos;
+      highlightText( searchedText,
+                     searchHistory[searchHistoryIndex].posInPanel );
+    } else {
+      std::string::size_type oldPosition = position;
+      position =
+        dataHandler.search( searchedText, position + searchedText.length() );
+
+      if ( position == std::string::npos )
+        position = oldPosition;
+      else {
+        const f32 posInPanel =
+          static_cast<u32>( position / chars_per_line ) * pixels_per_line;
+        searchHistory.push_back( { position, posInPanel } );
+        ++searchHistoryIndex;
+        highlightText( searchedText, posInPanel );
+      }
+    }
+  }
+};
+
+void
+HexV::searchPrevious()
+{
+  const Glib::ustring searchedText = searchBuffer->get_text();
+  if ( searchedText.length() != 0 && searchHistory.size() != 0 &&
+       searchHistoryIndex > 0 ) {
+    --searchHistoryIndex;
+    position = searchHistory[searchHistoryIndex].pos;
+    highlightText( searchedText, searchHistory[searchHistoryIndex].posInPanel );
+  }
+};
+
+void
+HexV::highlightText( const Glib::ustring& text, const f32 positionInPanel )
+{
+  const Glib::RefPtr<Gtk::Adjustment> adj = scrolledWindow->get_vadjustment();
+
+  const Gtk::TextIter rangeStart =
+    textBuffer->get_iter_at_offset( static_cast<s32>( position ) );
+  const Gtk::TextIter rangeEnd = textBuffer->get_iter_at_offset(
+    static_cast<s32>( position + text.length() ) );
+
+  textBuffer->select_range( rangeStart, rangeEnd );
+  adj->set_value( positionInPanel );
 };
 
 void
@@ -254,6 +350,8 @@ HexV::disableSearch()
   if ( textBuffer ) {
     textBuffer->select_range( textBuffer->begin(), textBuffer->begin() );
   }
+
+  resetSearch();
 };
 
 void
