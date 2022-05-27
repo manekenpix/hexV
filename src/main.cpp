@@ -9,4 +9,4 @@ main( int argc, char* argv[] )
   HexV hexV;
 
   return app->run( hexV );
-}
+};
