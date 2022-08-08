@@ -28,7 +28,7 @@ debug: $(OBJECTS)
 	$(CC) $(CCDEBUG) $^ -o $(TARGET) ${CCGTKMM}
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.$(SRC_EXT)
-	@mkdir -p $(BUILD_DIR)
+	@mkdir -p $(dir $@)
 	$(CC) $(CCDEBUG) -Wall -c -o $@ $< $(CCGTKMM)
 
 clean:

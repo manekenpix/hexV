@@ -1,7 +1,7 @@
 #ifndef HEXV_H
 #define HEXV_H
 
-#include "DataHandler.h"
+#include "Panels/Panels.h"
 #include <cstdint>
 #include <fstream>
 #include <glibmm/ustring.h>
@@ -15,7 +15,7 @@ class HexV : public Gtk::Window
   const u8 chars_per_line = 17;
   const u32 pixels_per_line = 16;
 
-  DataHandler dataHandler;
+  Panels panels;
 
   typedef struct FileType
   {
