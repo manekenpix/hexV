@@ -1,4 +1,4 @@
-#include "include/HexV.h"
+#include "HexV.h"
 
 HexV::HexV()
 {
@@ -181,6 +181,8 @@ HexV::setupEvents()
     sigc::mem_fun( *this, &HexV::about ) );
   textView->signal_drag_data_received().connect(
     sigc::mem_fun( *this, &HexV::openDroppedFile ) );
+  hexView->signal_drag_data_received().connect(
+    sigc::mem_fun( *this, &HexV::openDroppedFile ) );
 
   // Search
   searchEntry->signal_search_changed().connect(
@@ -213,9 +215,9 @@ HexV::openFile()
       parseFilePath( Glib::ustring( fileDialog.get_filename() ) );
       headerBar->set_subtitle( file.name );
 
-      dataHandler.loadFile( file.path );
-      textBuffer->set_text( *( dataHandler.getTextBuffer() ) );
-      hexBuffer->set_text( *( dataHandler.getHexBuffer() ) );
+      panels.loadFile( file.path );
+      textBuffer->set_text( *( panels.getTextBuffer() ) );
+      hexBuffer->set_text( *( panels.getHexBuffer() ) );
 
       resetSearch();
     } else
@@ -240,9 +242,9 @@ HexV::openDroppedFile( const Glib::RefPtr<Gdk::DragContext>& context,
       parseFilePath( selection_data.get_data_as_string() );
       headerBar->set_subtitle( file.name );
 
-      dataHandler.loadFile( file.path );
-      textBuffer->set_text( *( dataHandler.getTextBuffer() ) );
-      hexBuffer->set_text( *( dataHandler.getHexBuffer() ) );
+      panels.loadFile( file.path );
+      textBuffer->set_text( *( panels.getTextBuffer() ) );
+      hexBuffer->set_text( *( panels.getHexBuffer() ) );
     }
   } else
     displayErrorMessage( "Error Opening File",
@@ -268,7 +270,7 @@ void
 HexV::search()
 {
   const Glib::ustring searchedText = searchBuffer->get_text();
-  position = dataHandler.search( searchedText, position );
+  position = panels.search( searchedText, position );
   Glib::RefPtr<Gtk::Adjustment> adj = scrolledWindow->get_vadjustment();
 
   if ( position != std::string::npos ) {
@@ -302,7 +304,7 @@ HexV::searchNext()
     } else {
       std::string::size_type oldPosition = position;
       position =
-        dataHandler.search( searchedText, position + searchedText.length() );
+        panels.search( searchedText, position + searchedText.length() );
 
       if ( position == std::string::npos )
         position = oldPosition;

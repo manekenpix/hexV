@@ -1,7 +1,7 @@
-#include "include/DataHandler.h"
+#include "Panels.h"
 
 void
-DataHandler::loadFile( Glib::ustring fn )
+Panels::loadFile( Glib::ustring fn )
 {
   std::ifstream file( fn, std::ios::binary );
 
@@ -26,7 +26,7 @@ DataHandler::loadFile( Glib::ustring fn )
 };
 
 void
-DataHandler::processFile()
+Panels::processFile()
 {
   const u32 totalNumberOfPasses = fileSize / panelStride;
   u8 lastElements = fileSize % panelStride;
@@ -129,27 +129,27 @@ DataHandler::processFile()
 };
 
 Glib::ustring*
-DataHandler::getTextBuffer()
+Panels::getTextBuffer()
 {
   return &textPanel;
 };
 
 Glib::ustring*
-DataHandler::getHexBuffer()
+Panels::getHexBuffer()
 {
   return &hexPanel;
 };
 
 std::string::size_type
-DataHandler::search( const Glib::ustring& str,
-                     const std::string::size_type pos ) const
+Panels::search( const Glib::ustring& str,
+                const std::string::size_type pos ) const
 {
   return ( textPanel.length() == 0 || str.length() == 0 )
            ? std::string::npos
            : textPanel.find( str, pos );
 };
 
-DataHandler::~DataHandler()
+Panels::~Panels()
 {
   delete raw;
 };

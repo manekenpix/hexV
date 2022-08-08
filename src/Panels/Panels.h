@@ -1,7 +1,7 @@
 #ifndef DATA_HANDLER_H
 #define DATA_HANDLER_H
 
-#include "types.h"
+#include "../types.h"
 #include <array>
 #include <chrono>
 #include <fstream>
@@ -9,7 +9,7 @@
 #include <thread>
 #include <vector>
 
-class DataHandler
+class Panels
 {
   static const u8 panelStride = 16;
   static const u8 hexPanelStride = 48;
@@ -30,8 +30,8 @@ class DataHandler
   void processFile();
 
 public:
-  DataHandler(){};
-  ~DataHandler();
+  Panels(){};
+  ~Panels();
 
   void loadFile( Glib::ustring );
   Glib::ustring* getTextBuffer();
