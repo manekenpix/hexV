@@ -1,15 +1,15 @@
-#ifndef DATA_HANDLER_H
-#define DATA_HANDLER_H
+#ifndef PROCESSOR_H
+#define PROCESSOR_H
 
 #include "../types.h"
 #include <array>
 #include <chrono>
 #include <fstream>
-#include <glibmm/ustring.h>
+#include <glibmm-2.4/glibmm.h>
 #include <thread>
 #include <vector>
 
-class Panels
+class Processor
 {
   static const u8 panelStride = 16;
   static const u8 hexPanelStride = 48;
@@ -30,10 +30,11 @@ class Panels
   void processFile();
 
 public:
-  Panels(){};
-  ~Panels();
+  Processor(){};
+  ~Processor();
 
   void loadFile( Glib::ustring );
+  std::vector<char>* getRawBuffer() const;
   Glib::ustring* getTextBuffer();
   Glib::ustring* getHexBuffer();
   std::string::size_type search(
