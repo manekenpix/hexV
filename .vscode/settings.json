@@ -3,5 +3,6 @@
     "new": "cpp",
     "ostream": "cpp"
   },
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "clangd.path": "/usr/bin/clangd"
 }

@@ -1,12 +1,12 @@
 #ifndef HEXV_H
 #define HEXV_H
 
-#include "Panels/Panels.h"
+#include "Processor/Processor.h"
+#include "types.h"
 #include <cstdint>
 #include <fstream>
 #include <glibmm/ustring.h>
 #include <gtkmm.h>
-#include <iostream>
 
 class HexV : public Gtk::Window
 {
@@ -15,7 +15,7 @@ class HexV : public Gtk::Window
   const u8 chars_per_line = 17;
   const u32 pixels_per_line = 16;
 
-  Panels panels;
+  Processor processor;
 
   typedef struct FileType
   {
@@ -92,8 +92,8 @@ class HexV : public Gtk::Window
                       const f32 positionInPanel = 0.0 );
   void openFile();
   void openDroppedFile( const Glib::RefPtr<Gdk::DragContext>& context,
-                        int,
-                        int,
+                        s32,
+                        s32,
                         const Gtk::SelectionData& selection_data,
                         guint,
                         guint time );

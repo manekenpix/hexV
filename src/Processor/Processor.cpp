@@ -1,9 +1,10 @@
-#include "Panels.h"
+#include "Processor.h"
 
 void
-Panels::loadFile( Glib::ustring fn )
+Processor::loadFile( Glib::ustring fn )
 {
-  std::ifstream file( fn, std::ios::binary );
+  std::ifstream file;
+  file.open( fn.c_str(), std::ios::binary );
 
   if ( file.is_open() ) {
     delete raw;
@@ -26,7 +27,7 @@ Panels::loadFile( Glib::ustring fn )
 };
 
 void
-Panels::processFile()
+Processor::processFile()
 {
   const u32 totalNumberOfPasses = fileSize / panelStride;
   u8 lastElements = fileSize % panelStride;
@@ -128,28 +129,34 @@ Panels::processFile()
   }
 };
 
+std::vector<char>*
+Processor::getRawBuffer() const
+{
+  return raw;
+};
+
 Glib::ustring*
-Panels::getTextBuffer()
+Processor::getTextBuffer()
 {
   return &textPanel;
 };
 
 Glib::ustring*
-Panels::getHexBuffer()
+Processor::getHexBuffer()
 {
   return &hexPanel;
 };
 
 std::string::size_type
-Panels::search( const Glib::ustring& str,
-                const std::string::size_type pos ) const
+Processor::search( const Glib::ustring& str,
+                   const std::string::size_type pos ) const
 {
   return ( textPanel.length() == 0 || str.length() == 0 )
            ? std::string::npos
            : textPanel.find( str, pos );
 };
 
-Panels::~Panels()
+Processor::~Processor()
 {
   delete raw;
 };

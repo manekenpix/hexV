@@ -3,17 +3,11 @@
 HexV::HexV()
 {
   setupWindow();
-
   setupMenu();
-
   setupPanels();
-
   setupSearchBox();
-
   setupEvents();
-
   setupContainers();
-
   disableSearch();
 };
 
@@ -215,10 +209,9 @@ HexV::openFile()
       parseFilePath( Glib::ustring( fileDialog.get_filename() ) );
       headerBar->set_subtitle( file.name );
 
-      panels.loadFile( file.path );
-      textBuffer->set_text( *( panels.getTextBuffer() ) );
-      hexBuffer->set_text( *( panels.getHexBuffer() ) );
-
+      processor.loadFile( file.path );
+      textBuffer->set_text( *( processor.getTextBuffer() ) );
+      hexBuffer->set_text( *( processor.getHexBuffer() ) );
       resetSearch();
     } else
       displayErrorMessage( "Error Opening File", "File already open" );
@@ -242,9 +235,9 @@ HexV::openDroppedFile( const Glib::RefPtr<Gdk::DragContext>& context,
       parseFilePath( selection_data.get_data_as_string() );
       headerBar->set_subtitle( file.name );
 
-      panels.loadFile( file.path );
-      textBuffer->set_text( *( panels.getTextBuffer() ) );
-      hexBuffer->set_text( *( panels.getHexBuffer() ) );
+      processor.loadFile( file.path );
+      textBuffer->set_text( *( processor.getTextBuffer() ) );
+      hexBuffer->set_text( *( processor.getHexBuffer() ) );
     }
   } else
     displayErrorMessage( "Error Opening File",
@@ -270,7 +263,7 @@ void
 HexV::search()
 {
   const Glib::ustring searchedText = searchBuffer->get_text();
-  position = panels.search( searchedText, position );
+  position = processor.search( searchedText, position );
   Glib::RefPtr<Gtk::Adjustment> adj = scrolledWindow->get_vadjustment();
 
   if ( position != std::string::npos ) {
@@ -304,7 +297,7 @@ HexV::searchNext()
     } else {
       std::string::size_type oldPosition = position;
       position =
-        panels.search( searchedText, position + searchedText.length() );
+        processor.search( searchedText, position + searchedText.length() );
 
       if ( position == std::string::npos )
         position = oldPosition;
