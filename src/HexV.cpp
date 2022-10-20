@@ -14,7 +14,7 @@ HexV::HexV()
 void
 HexV::setupWindow()
 {
-  set_default_size( width, height );
+  set_default_size( WIDTH, HEIGHT );
   set_position( Gtk::WIN_POS_CENTER_ALWAYS );
   set_resizable( false );
 
@@ -254,7 +254,6 @@ HexV::displaySearchBox()
 void
 HexV::resetSearch()
 {
-  position = 0;
   searchHistoryIndex = -1;
   searchHistory.clear();
 }
@@ -263,17 +262,22 @@ void
 HexV::search()
 {
   const Glib::ustring searchedText = searchBuffer->get_text();
-  position = processor.search( searchedText, position );
   Glib::RefPtr<Gtk::Adjustment> adj = scrolledWindow->get_vadjustment();
 
-  if ( position != std::string::npos ) {
-    const f32 posInPanel =
-      static_cast<u32>( position / chars_per_line ) * pixels_per_line;
-    searchHistory.clear();
-    searchHistory.push_back( { position, posInPanel } );
-    searchHistoryIndex = 0;
+  processor.clearSearch();
+  searchHistory.clear();
+  indexes = processor.searchAll( searchedText );
+  searchCounter = indexes.size();
 
-    highlightText( searchedText, posInPanel );
+  for ( auto i = 0; i < searchCounter; ++i ) {
+    const f32 posInPanel =
+      static_cast<u32>( indexes[i] / CHARS_PER_LINE ) * PIXELS_PER_LINE;
+    searchHistory.push_back( { indexes[i], posInPanel } );
+    searchHistoryIndex = 0;
+  }
+
+  if ( searchHistory.size() > 0 ) {
+    highlightText();
   } else {
     resetSearch();
 
@@ -287,28 +291,10 @@ HexV::searchNext()
 {
   const Glib::ustring searchedText = searchBuffer->get_text();
 
-  if ( searchedText.length() > 0 ) {
-
-    if ( searchHistoryIndex < searchHistory.size() - 1 ) {
-      ++searchHistoryIndex;
-      position = searchHistory[searchHistoryIndex].pos;
-      highlightText( searchedText,
-                     searchHistory[searchHistoryIndex].posInPanel );
-    } else {
-      std::string::size_type oldPosition = position;
-      position =
-        processor.search( searchedText, position + searchedText.length() );
-
-      if ( position == std::string::npos )
-        position = oldPosition;
-      else {
-        const f32 posInPanel =
-          static_cast<u32>( position / chars_per_line ) * pixels_per_line;
-        searchHistory.push_back( { position, posInPanel } );
-        ++searchHistoryIndex;
-        highlightText( searchedText, posInPanel );
-      }
-    }
+  if ( searchedText.length() > 0 &&
+       searchHistoryIndex < searchHistory.size() - 1 ) {
+    ++searchHistoryIndex;
+    highlightText();
   }
 };
 
@@ -316,26 +302,26 @@ void
 HexV::searchPrevious()
 {
   const Glib::ustring searchedText = searchBuffer->get_text();
-  if ( searchedText.length() != 0 && searchHistory.size() != 0 &&
-       searchHistoryIndex > 0 ) {
+
+  if ( searchedText.length() > 0 && searchHistoryIndex > 0 ) {
     --searchHistoryIndex;
-    position = searchHistory[searchHistoryIndex].pos;
-    highlightText( searchedText, searchHistory[searchHistoryIndex].posInPanel );
+    highlightText();
   }
 };
 
 void
-HexV::highlightText( const Glib::ustring& text, const f32 positionInPanel )
+HexV::highlightText()
 {
+  const Glib::ustring text = searchBuffer->get_text();
   const Glib::RefPtr<Gtk::Adjustment> adj = scrolledWindow->get_vadjustment();
 
-  const Gtk::TextIter rangeStart =
-    textBuffer->get_iter_at_offset( static_cast<s32>( position ) );
+  const Gtk::TextIter rangeStart = textBuffer->get_iter_at_offset(
+    static_cast<s32>( searchHistory[searchHistoryIndex].pos ) );
   const Gtk::TextIter rangeEnd = textBuffer->get_iter_at_offset(
-    static_cast<s32>( position + text.length() ) );
+    static_cast<s32>( searchHistory[searchHistoryIndex].pos + text.length() ) );
 
   textBuffer->select_range( rangeStart, rangeEnd );
-  adj->set_value( positionInPanel );
+  adj->set_value( searchHistory[searchHistoryIndex].posInPanel );
 };
 
 void

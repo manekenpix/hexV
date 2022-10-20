@@ -29,20 +29,21 @@ Processor::loadFile( Glib::ustring fn )
 void
 Processor::processFile()
 {
-  const u32 totalNumberOfPasses = fileSize / panelStride;
-  u8 lastElements = fileSize % panelStride;
+  const u32 totalNumberOfPasses = fileSize / PANEL_STRIDE;
+  u8 lastElements = fileSize % PANEL_STRIDE;
 
   textPanel.clear();
   hexPanel.clear();
 
   textPanel.reserve( fileSize + totalNumberOfPasses );
-  hexPanel.reserve( ( hexPanelStride * totalNumberOfPasses ) + hexPanelStride );
+  hexPanel.reserve( ( HEX_PANEL_STRIDE * totalNumberOfPasses ) +
+                    HEX_PANEL_STRIDE );
 
   auto processChunk = [&]( Glib::ustring& textBuffer,
                            Glib::ustring& hexBuffer,
                            std::vector<char>::iterator fileIterator,
                            u32 passes,
-                           u8 stride = panelStride ) {
+                           u8 stride = PANEL_STRIDE ) {
     for ( u32 pass = 0; pass < passes; ++pass ) {
 
       for ( u32 i = 0; i < stride; ++i ) {
@@ -52,7 +53,7 @@ Processor::processFile()
 
         hexBuffer += hexValues[( *fileIterator >> 4 ) & 0x0F];
         hexBuffer += hexValues[( *fileIterator & 0x0F )];
-        if ( i != panelStride - 1 )
+        if ( i != PANEL_STRIDE - 1 )
           hexBuffer += ' ';
 
         ++fileIterator;
@@ -69,8 +70,8 @@ Processor::processFile()
     const u8 numberOfThreads = std::thread::hardware_concurrency() + 1;
 
     u32 chunkSize = fileSize / numberOfThreads;
-    chunkSize = chunkSize - ( chunkSize % panelStride );
-    const u32 numberOfPassesPerChunk = chunkSize / panelStride;
+    chunkSize = chunkSize - ( chunkSize % PANEL_STRIDE );
+    const u32 numberOfPassesPerChunk = chunkSize / PANEL_STRIDE;
 
     std::vector<std::thread> pool;
     std::vector<Glib::ustring> textBuffers( numberOfThreads, Glib::ustring() );
@@ -78,8 +79,8 @@ Processor::processFile()
 
     for ( u8 t = 0; t < numberOfThreads; ++t ) {
       textBuffers[t].reserve( chunkSize + numberOfPassesPerChunk );
-      hexBuffers[t].reserve( ( hexPanelStride * numberOfPassesPerChunk ) +
-                             hexPanelStride );
+      hexBuffers[t].reserve( ( HEX_PANEL_STRIDE * numberOfPassesPerChunk ) +
+                             HEX_PANEL_STRIDE );
       pool.push_back( std::thread( processChunk,
                                    std::ref( textBuffers[t] ),
                                    std::ref( hexBuffers[t] ),
@@ -100,19 +101,21 @@ Processor::processFile()
     // Last chunk
     lastElements = fileSize - ( chunkSize * numberOfThreads );
 
-    if ( lastElements > panelStride ) {
-      u32 lastPasses = lastElements / panelStride;
+    if ( lastElements > PANEL_STRIDE ) {
+      u32 lastPasses = lastElements / PANEL_STRIDE;
 
       std::vector<char>::iterator fileIterator = raw->end() - lastElements;
       processChunk( textPanel, hexPanel, fileIterator, lastPasses );
     }
 
-    lastElements = fileSize % panelStride;
+    lastElements = fileSize % PANEL_STRIDE;
 
   } else {
     // Single thread
     processChunk( textPanel, hexPanel, raw->begin(), totalNumberOfPasses );
   }
+
+  rawString = std::string( raw->data(), raw->size() );
 
   // Last pass
   std::vector<char>::iterator fileIterator = raw->end() - lastElements;
@@ -147,13 +150,31 @@ Processor::getHexBuffer()
   return &hexPanel;
 };
 
-std::string::size_type
-Processor::search( const Glib::ustring& str,
-                   const std::string::size_type pos ) const
+std::vector<std::string::size_type>
+Processor::searchAll( const Glib::ustring& str )
 {
-  return ( textPanel.length() == 0 || str.length() == 0 )
-           ? std::string::npos
-           : textPanel.find( str, pos );
+  if ( !str.empty() && !rawString.empty() ) {
+    std::string::size_type hit = 0;
+
+    while ( hit != std::string::npos ) {
+      hit = rawString.find( str, hit );
+
+      if ( hit != std::string::npos ) {
+        searchHits.push_back( hit + ( hit / PANEL_STRIDE ) );
+        if ( rawString.length() - hit > str.length() ) {
+          hit += str.length();
+        } else
+          hit = std::string::npos;
+      }
+    }
+  }
+  return searchHits;
+};
+
+void
+Processor::clearSearch()
+{
+  searchHits.clear();
 };
 
 Processor::~Processor()

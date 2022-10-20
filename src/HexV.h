@@ -10,10 +10,10 @@
 
 class HexV : public Gtk::Window
 {
-  const size_t width = 475;
-  const size_t height = 700;
-  const u8 chars_per_line = 17;
-  const u32 pixels_per_line = 16;
+  const size_t WIDTH = 475;
+  const size_t HEIGHT = 700;
+  const u8 CHARS_PER_LINE = 17;
+  const u32 PIXELS_PER_LINE = 16;
 
   Processor processor;
 
@@ -52,9 +52,10 @@ class HexV : public Gtk::Window
   Gtk::Button* previous;
   Gtk::Image* previousIcon;
   Gtk::SearchEntry* searchEntry;
-  std::string::size_type position;
   Glib::RefPtr<Gtk::EntryBuffer> searchBuffer;
   s8 searchHistoryIndex;
+  std::vector<std::string::size_type> indexes;
+  u32 searchCounter;
 
   typedef struct SearchHistoryType
   {
@@ -88,8 +89,7 @@ class HexV : public Gtk::Window
   void searchPrevious();
   void disableSearch();
   void resetSearch();
-  void highlightText( const Glib::ustring& text,
-                      const f32 positionInPanel = 0.0 );
+  void highlightText();
   void openFile();
   void openDroppedFile( const Glib::RefPtr<Gdk::DragContext>& context,
                         s32,
