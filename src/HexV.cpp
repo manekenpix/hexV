@@ -33,6 +33,7 @@ HexV::setupSearchBox()
   searchEntry = Gtk::manage( new Gtk::SearchEntry() );
   searchBuffer = Gtk::EntryBuffer::create();
   searchEntry->set_buffer( searchBuffer );
+  searchLabel = Gtk::manage( new Gtk::Label( "0 / 0" ) );
 
   next = Gtk::manage( new Gtk::Button() );
   previous = Gtk::manage( new Gtk::Button() );
@@ -47,6 +48,7 @@ HexV::setupSearchBox()
 
   searchBox = Gtk::manage( new Gtk::Box( Gtk::ORIENTATION_HORIZONTAL, 0 ) );
   searchBox->pack_start( *searchEntry, true, true, 5 );
+  searchBox->pack_start( *searchLabel, false, false, 5 );
   searchBox->pack_start( *next, false, false, 5 );
   searchBox->pack_start( *previous, false, false, 5 );
 };
@@ -256,6 +258,8 @@ HexV::resetSearch()
 {
   searchHistoryIndex = -1;
   searchHistory.clear();
+  searchBuffer->set_text( "" );
+  updateSearchLabel();
 }
 
 void
@@ -277,6 +281,7 @@ HexV::search()
   }
 
   if ( searchHistory.size() > 0 ) {
+    updateSearchLabel();
     highlightText();
   } else {
     resetSearch();
@@ -294,6 +299,7 @@ HexV::searchNext()
   if ( searchedText.length() > 0 &&
        searchHistoryIndex < searchHistory.size() - 1 ) {
     ++searchHistoryIndex;
+    updateSearchLabel();
     highlightText();
   }
 };
@@ -305,9 +311,17 @@ HexV::searchPrevious()
 
   if ( searchedText.length() > 0 && searchHistoryIndex > 0 ) {
     --searchHistoryIndex;
+    updateSearchLabel();
     highlightText();
   }
 };
+
+void
+HexV::updateSearchLabel()
+{
+  searchLabel->set_text( std::to_string( searchHistoryIndex + 1 ) + " / " +
+                         std::to_string( searchCounter ) );
+}
 
 void
 HexV::highlightText()
