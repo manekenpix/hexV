@@ -51,10 +51,11 @@ class HexV : public Gtk::Window
   Gtk::Image* nextIcon;
   Gtk::Button* previous;
   Gtk::Image* previousIcon;
+  Gtk::Label* searchLabel;
   Gtk::SearchEntry* searchEntry;
   Glib::RefPtr<Gtk::EntryBuffer> searchBuffer;
-  s8 searchHistoryIndex;
   std::vector<std::string::size_type> indexes;
+  u32 searchHistoryIndex;
   u32 searchCounter;
 
   typedef struct SearchHistoryType
@@ -87,6 +88,7 @@ class HexV : public Gtk::Window
   void search();
   void searchNext();
   void searchPrevious();
+  void updateSearchLabel();
   void disableSearch();
   void resetSearch();
   void highlightText();
