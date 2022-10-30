@@ -13,7 +13,7 @@ class HexV : public Gtk::Window
   const size_t WIDTH = 475;
   const size_t HEIGHT = 700;
   const u8 CHARS_PER_LINE = 17;
-  const u32 PIXELS_PER_LINE = 16;
+  const u32 PIXELS_PER_LINE = 14;
 
   Processor processor;
 
