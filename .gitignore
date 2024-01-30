@@ -34,5 +34,6 @@ hexV
 
 # Editor's files
 project.4coder
+compile_commands.json
 .project.gf
 .cache

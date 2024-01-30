@@ -1,6 +1,7 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+#include <cstdint>
 #include <iostream>
 
 typedef uint8_t u8;

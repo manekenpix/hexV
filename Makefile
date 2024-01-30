@@ -1,4 +1,4 @@
-CC = clang++ -v -std=c++17 -Wall
+CC = clang++ -v -std=c++20 -Wall
 RELEASE = -O3
 DEBUG = -g
 CCGTKMM = `pkg-config gtkmm-3.0 --cflags --libs`

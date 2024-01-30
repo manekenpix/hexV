@@ -3,7 +3,6 @@
 
 #include "../types.h"
 #include <array>
-#include <chrono>
 #include <fstream>
 #include <glibmm-2.4/glibmm.h>
 #include <thread>

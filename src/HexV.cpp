@@ -19,11 +19,11 @@ HexV::setupWindow()
   set_resizable( false );
 
   std::fstream iconFile;
-  iconFile.open( "images/hv.png", std::fstream::in );
+  iconFile.open( ICON_FILE_NAME, std::fstream::in );
 
   if ( iconFile.is_open() ) {
     iconFile.close();
-    set_icon_from_file( "images/hv.png" );
+    set_icon_from_file( ICON_FILE_NAME );
   }
 };
 

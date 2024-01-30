@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <fstream>
 #include <glibmm/ustring.h>
+#include <gtkmm-3.0/gtkmm.h>
 #include <gtkmm.h>
 
 class HexV : public Gtk::Window
@@ -14,6 +15,7 @@ class HexV : public Gtk::Window
   const size_t HEIGHT = 700;
   const u8 CHARS_PER_LINE = 17;
   const u32 PIXELS_PER_LINE = 14;
+  const char* ICON_FILE_NAME = "images/hv.png";
 
   Processor processor;
 
